@@ -1,11 +1,10 @@
 import SwiftUI
-import Sparkle
 import os.log
 
-private let logger = Logger(subsystem: "com.eriknielsen.lockpaw", category: "App")
+private let logger = Logger(subsystem: "app.getapidae.mac", category: "App")
 
 @main
-struct LockpawApp: App {
+struct ApidaeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var lockController = LockController()
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -20,7 +19,7 @@ struct LockpawApp: App {
         }
 
         Settings {
-            SettingsView(viewModel: appDelegate.updateCheckViewModel)
+            SettingsView()
         }
     }
 
@@ -34,10 +33,6 @@ struct LockpawApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    let updateCheckViewModel = UpdateCheckViewModel()
-    lazy var updaterController: SPUStandardUpdaterController = {
-        SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: updateCheckViewModel, userDriverDelegate: nil)
-    }()
     private let hotkeyManager = HotkeyManager()
     private var hotkeyObserver: Any?
     private var accessibilityPollTimer: Timer?
@@ -45,14 +40,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Start Sparkle after app is fully launched
-        updateCheckViewModel.bind(to: updaterController.updater)
-        do {
-            try updaterController.updater.start()
-        } catch {
-            logger.error("Sparkle updater failed to start: \(error.localizedDescription)")
-        }
-
         // Apply saved appearance
         let mode = UserDefaults.standard.integer(forKey: "appearanceMode")
         switch mode {
@@ -75,7 +62,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         hotkeyObserver = NotificationCenter.default.addObserver(
-            forName: .lockpawHotkeyPreferenceChanged, object: nil, queue: nil
+            forName: .apidaeHotkeyPreferenceChanged, object: nil, queue: nil
         ) { [weak self] notification in
             DispatchQueue.main.async {
                 if let enabled = notification.userInfo?["enabled"] as? Bool {
@@ -112,7 +99,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             styleMask: [.titled, .closable],
             backing: .buffered, defer: false
         )
-        window.title = "Welcome to Lockpaw"
+        window.title = "Welcome to Apidae"
         window.contentView = NSHostingView(rootView: view)
         window.center()
         window.isReleasedWhenClosed = false
@@ -143,10 +130,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         for url in urls {
             guard url.scheme == Constants.urlScheme else { continue }
             switch url.host {
-            case "lock": NotificationCenter.default.post(name: .lockpawLock, object: nil)
-            case "unlock": NotificationCenter.default.post(name: .lockpawUnlock, object: nil)
-            case "unlock-password": NotificationCenter.default.post(name: .lockpawUnlockPassword, object: nil)
-            case "toggle": NotificationCenter.default.post(name: .toggleLockpaw, object: nil)
+            case "lock": NotificationCenter.default.post(name: .apidaeLock, object: nil)
+            case "unlock": NotificationCenter.default.post(name: .apidaeUnlock, object: nil)
+            case "unlock-password": NotificationCenter.default.post(name: .apidaeUnlockPassword, object: nil)
+            case "toggle": NotificationCenter.default.post(name: .toggleApidae, object: nil)
             default: logger.warning("Unknown URL scheme: \(url.host ?? "nil")")
             }
         }

@@ -44,22 +44,22 @@ struct MenuBarView: View {
             }
             .keyboardShortcut(",")
 
-            Button("Quit Lockpaw") {
+            Button("Quit Apidae") {
                 NSApplication.shared.terminate(nil)
             }
             .keyboardShortcut("q")
         }
-        .onReceive(NotificationCenter.default.publisher(for: .lockpawLock)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .apidaeLock)) { _ in
             if controller.state == .unlocked {
                 controller.lock()
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .lockpawUnlock)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .apidaeUnlock)) { _ in
             if controller.state == .locked {
                 controller.requestUnlock()
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .lockpawUnlockPassword)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .apidaeUnlockPassword)) { _ in
             if controller.state == .locked {
                 controller.requestPasswordUnlock()
             }

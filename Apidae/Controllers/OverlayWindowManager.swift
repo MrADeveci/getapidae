@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import os.log
 
-private let logger = Logger(subsystem: "com.eriknielsen.lockpaw", category: "OverlayWindow")
+private let logger = Logger(subsystem: "app.getapidae.mac", category: "OverlayWindow")
 
 class OverlayWindowManager {
     private var windows: [NSWindow] = []
@@ -165,7 +165,7 @@ class OverlayWindowManager {
             object: nil,
             queue: .main
         ) { _ in
-            NotificationCenter.default.post(name: .lockpawSessionLost, object: nil)
+            NotificationCenter.default.post(name: .apidaeSessionLost, object: nil)
         }
     }
 

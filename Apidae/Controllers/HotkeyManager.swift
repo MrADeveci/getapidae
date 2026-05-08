@@ -2,7 +2,7 @@ import Cocoa
 import Carbon
 import os.log
 
-private let logger = Logger(subsystem: "com.eriknielsen.lockpaw", category: "HotkeyManager")
+private let logger = Logger(subsystem: "app.getapidae.mac", category: "HotkeyManager")
 
 /// Manages global hotkey detection using a CGEventTap on a dedicated background thread.
 /// Running on its own thread with its own run loop bypasses the LSUIElement activation
@@ -63,7 +63,7 @@ class HotkeyManager {
 
                 if matches {
                     DispatchQueue.main.async {
-                        NotificationCenter.default.post(name: .toggleLockpaw, object: nil)
+                        NotificationCenter.default.post(name: .toggleApidae, object: nil)
                     }
                 }
 
@@ -94,7 +94,7 @@ class HotkeyManager {
 
             logger.info("registerHotkey: background run loop exited")
         }
-        thread.name = "com.eriknielsen.lockpaw.hotkey"
+        thread.name = "app.getapidae.mac.hotkey"
         thread.qualityOfService = .userInteractive
         thread.start()
         tapThread = thread

@@ -39,7 +39,7 @@ struct OnboardingView: View {
                 HStack(spacing: 8) {
                     ForEach(0..<totalSteps, id: \.self) { i in
                         Circle()
-                            .fill(i == step ? Color("LockpawTeal") : .gray.opacity(0.3))
+                            .fill(i == step ? Color("ApidaeHoney") : .gray.opacity(0.3))
                             .frame(width: 6, height: 6)
                     }
                 }
@@ -55,7 +55,7 @@ struct OnboardingView: View {
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
                                 .fill(canAdvance
-                                      ? Color("LockpawTeal")
+                                      ? Color("ApidaeHoney")
                                       : Color.gray.opacity(0.4))
                         )
                 }
@@ -91,7 +91,7 @@ struct OnboardingView: View {
                 if step == 2 { startAccessibilityPolling() }
             } else {
                 UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-                NotificationCenter.default.post(name: .lockpawHotkeyPreferenceChanged, object: nil)
+                NotificationCenter.default.post(name: .apidaeHotkeyPreferenceChanged, object: nil)
                 hasCompletedOnboarding = true
                 // Open Settings immediately — this activates the event pipeline
                 // so the global hotkey works without needing to click the menu bar.
@@ -110,17 +110,17 @@ struct OnboardingView: View {
                 .frame(width: 80, height: 80)
 
             VStack(spacing: 8) {
-                Text("Welcome to Lockpaw")
+                Text("Welcome to Apidae")
                     .font(.title2.weight(.semibold))
 
-                Text("A screen guard for when your\ncomputer is working and you're not.")
+                Text("Apidae for macOS")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(2)
             }
 
-            Text("Lockpaw is a visual privacy tool, not a security lock. For real security, use your Mac's lock screen (Ctrl+Cmd+Q).")
+            Text("Apidae is a visual privacy tool, not a security lock. For real security, use your Mac's lock screen (Ctrl+Cmd+Q).")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -135,7 +135,7 @@ struct OnboardingView: View {
         VStack(spacing: 20) {
             Image(systemName: "keyboard")
                 .font(.system(size: 36, weight: .light))
-                .foregroundStyle(Color("LockpawTeal"))
+                .foregroundStyle(Color("ApidaeHoney"))
 
             VStack(spacing: 8) {
                 Text("Set your hotkey")
@@ -154,22 +154,22 @@ struct OnboardingView: View {
                     if isRecording {
                         Text("Press your shortcut…")
                             .font(.system(size: 15, weight: .medium))
-                            .foregroundStyle(Color("LockpawTeal").opacity(0.7))
+                            .foregroundStyle(Color("ApidaeHoney").opacity(0.7))
                     } else {
                         Text(recordedKeyDisplay)
                             .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(Color("LockpawTeal"))
+                            .foregroundStyle(Color("ApidaeHoney"))
                     }
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color("LockpawTeal").opacity(isRecording ? 0.15 : 0.08))
+                        .fill(Color("ApidaeHoney").opacity(isRecording ? 0.15 : 0.08))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .strokeBorder(Color("LockpawTeal").opacity(isRecording ? 0.4 : 0.15), lineWidth: 1)
+                        .strokeBorder(Color("ApidaeHoney").opacity(isRecording ? 0.4 : 0.15), lineWidth: 1)
                 )
             }
             .buttonStyle(.plain)
@@ -177,7 +177,7 @@ struct OnboardingView: View {
             if let conflict = hotkeyConflict {
                 Text(conflict)
                     .font(.caption)
-                    .foregroundStyle(Color("LockpawError"))
+                    .foregroundStyle(Color("ApidaeError"))
             } else {
                 Text(isRecording ? "Press any modifier + key" : "Click to change")
                     .font(.caption)
@@ -195,7 +195,7 @@ struct OnboardingView: View {
                 if accessibilityGranted {
                     Image(systemName: "checkmark.shield.fill")
                         .font(.system(size: 36, weight: .light))
-                        .foregroundStyle(Color("LockpawTeal"))
+                        .foregroundStyle(Color("ApidaeHoney"))
                         .transition(.scale.combined(with: .opacity))
                 } else {
                     Text("✋")
@@ -211,13 +211,13 @@ struct OnboardingView: View {
                     .animation(.none, value: accessibilityGranted)
 
                 if accessibilityGranted {
-                    Text("Lockpaw can now block keyboard input\nwhile your screen is locked.")
+                    Text("Apidae can now block keyboard input\nwhile the cover is active.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(2)
                 } else {
-                    Text("Lockpaw needs Accessibility permission to\nblock keyboard input while locked.")
+                    Text("Apidae needs Accessibility permission to\nblock keyboard input while the cover is active.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -239,18 +239,18 @@ struct OnboardingView: View {
                             Text("Open System Settings")
                                 .font(.system(size: 13, weight: .medium))
                         }
-                        .foregroundStyle(Color("LockpawTeal"))
+                        .foregroundStyle(Color("ApidaeHoney"))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(Color("LockpawTeal").opacity(0.1))
+                                .fill(Color("ApidaeHoney").opacity(0.1))
                         )
                     }
                     .buttonStyle(.plain)
 
                     VStack(spacing: 4) {
-                        Text("Find Lockpaw in the list and toggle it on.")
+                        Text("Find Apidae in the list and toggle it on.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Text("This window will update automatically.")
@@ -280,10 +280,10 @@ struct OnboardingView: View {
                         .font(.system(size: 13))
                         .foregroundStyle(.secondary)
 
-                    // Lockpaw icon — highlighted
+                    // Apidae icon — highlighted
                     ZStack {
                         RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .fill(Color("LockpawTeal").opacity(0.15))
+                            .fill(Color("ApidaeHoney").opacity(0.15))
                             .frame(width: 24, height: 20)
 
                         Image("MenuBarIcon")
@@ -291,7 +291,7 @@ struct OnboardingView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(height: 12)
-                            .foregroundStyle(Color("LockpawTeal"))
+                            .foregroundStyle(Color("ApidaeHoney"))
                     }
 
                     // Clock
@@ -310,10 +310,10 @@ struct OnboardingView: View {
             .frame(width: 220)
 
             VStack(spacing: 8) {
-                Text("Lockpaw lives in your menu bar")
+                Text("Apidae lives in your menu bar")
                     .font(.title3.weight(.semibold))
 
-                Text("Look for the dog icon in the top-right\nof your screen. That's your control center.")
+                Text("Look for the bee icon in the top-right\nof your screen. That's your control center.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -328,12 +328,12 @@ struct OnboardingView: View {
 
                 Text(recordedKeyDisplay)
                     .font(.system(size: 14, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(Color("LockpawTeal"))
+                    .foregroundStyle(Color("ApidaeHoney"))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(Color("LockpawTeal").opacity(0.08))
+                            .fill(Color("ApidaeHoney").opacity(0.08))
                     )
             }
         }
@@ -378,7 +378,7 @@ struct OnboardingView: View {
             HotkeyConfig.saveKeyCode(Int(event.keyCode))
             HotkeyConfig.saveModifiers(carbonMods)
             HotkeyConfig.saveDisplay(recordedKeyDisplay)
-            // Don't post lockpawHotkeyPreferenceChanged here — Accessibility isn't
+            // Don't post apidaeHotkeyPreferenceChanged here — Accessibility isn't
             // granted yet during onboarding. The completion step posts it instead.
 
             return nil

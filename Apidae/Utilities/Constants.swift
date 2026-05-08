@@ -1,10 +1,10 @@
 import SwiftUI
 
 enum Constants {
-    static let appName = "Lockpaw"
-    static let bundleIdentifier = "com.eriknielsen.lockpaw"
-    static let urlScheme = "lockpaw"
-    static let defaultLockMessage = "Agents are working. Don't turn me off."
+    static let appName = "Apidae"
+    static let bundleIdentifier = "app.getapidae.mac"
+    static let urlScheme = "apidae"
+    static let defaultLockMessage = "Agents are working. Don't disturb the hive."
 
     enum Timing {
         static let inputBlockerDelayNs: UInt64 = 50_000_000           // 50ms

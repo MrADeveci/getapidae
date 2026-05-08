@@ -4,7 +4,7 @@ import AppKit
 import SwiftUI
 import os.log
 
-private let logger = Logger(subsystem: "com.eriknielsen.lockpaw", category: "LockController")
+private let logger = Logger(subsystem: "app.getapidae.mac", category: "LockController")
 
 @MainActor
 class LockController: ObservableObject {
@@ -35,7 +35,7 @@ class LockController: ObservableObject {
 
     init() {
         toggleObserver = NotificationCenter.default.addObserver(
-            forName: .toggleLockpaw, object: nil, queue: .main
+            forName: .toggleApidae, object: nil, queue: .main
         ) { [weak self] _ in
             guard let self else { return }
             Task { @MainActor [weak self] in
@@ -61,7 +61,7 @@ class LockController: ObservableObject {
         }
 
         sessionLostObserver = NotificationCenter.default.addObserver(
-            forName: .lockpawSessionLost, object: nil, queue: .main
+            forName: .apidaeSessionLost, object: nil, queue: .main
         ) { [weak self] _ in
             guard let self else { return }
             Task { @MainActor [weak self] in
@@ -96,7 +96,7 @@ class LockController: ObservableObject {
         }
 
         inputBlockerFailedObserver = NotificationCenter.default.addObserver(
-            forName: .lockpawInputBlockerFailed, object: nil, queue: .main
+            forName: .apidaeInputBlockerFailed, object: nil, queue: .main
         ) { [weak self] _ in
             guard let self else { return }
             Task { @MainActor [weak self] in

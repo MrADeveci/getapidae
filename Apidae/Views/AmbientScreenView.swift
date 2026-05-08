@@ -44,7 +44,7 @@ struct AmbientScreenView: View {
         return ZStack {
             // Blob A — deep teal, largest, anchor blob
             blob(
-                color: Color("LockpawTeal"),
+                color: Color("ApidaeHoney"),
                 width: w * 0.5, height: w * 0.4,
                 blur: 140,
                 opacity: 0.13 + 0.06 * osc(p, freq: 0.2),
@@ -54,9 +54,9 @@ struct AmbientScreenView: View {
                 rotation: 35 * osc(p, freq: 0.15)
             )
 
-            // Blob B — cool teal-blue
+            // Blob B — warm honey-orange
             blob(
-                color: Color(red: 0, green: 0.53, blue: 0.67),
+                color: Color(red: 0.85, green: 0.55, blue: 0.0),
                 width: w * 0.38, height: w * 0.32,
                 blur: 120,
                 opacity: 0.10 + 0.05 * osc(p, freq: 0.3, offset: 0.5),
@@ -68,7 +68,7 @@ struct AmbientScreenView: View {
 
             // Blob C — warm amber
             blob(
-                color: Color("LockpawAmber"),
+                color: Color("ApidaeAmber"),
                 width: w * 0.35, height: w * 0.3,
                 blur: 110,
                 opacity: 0.08 + 0.05 * osc(p, freq: 0.25, offset: 1.5),
@@ -90,9 +90,9 @@ struct AmbientScreenView: View {
                 rotation: 45 * osc(p, freq: 0.25, offset: 3.0)
             )
 
-            // Blob E — pale teal accent, smallest
+            // Blob E — pale honey accent, smallest
             blob(
-                color: Color(red: 0.2, green: 0.8, blue: 0.65),
+                color: Color(red: 0.96, green: 0.77, blue: 0.3),
                 width: w * 0.28, height: w * 0.22,
                 blur: 90,
                 opacity: 0.07 + 0.04 * osc(p, freq: 0.4, offset: 0.3),

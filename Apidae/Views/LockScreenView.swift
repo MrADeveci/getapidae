@@ -39,13 +39,13 @@ struct LockScreenView: View {
                     Spacer().frame(minHeight: 0)
                         .frame(height: geo.size.height * 0.32)
 
-                    // Dog + message + time as a tight cohesive group
+                    // Mascot + message + time as a tight cohesive group
                     VStack(spacing: unit * 1.2) {
 
-                        // Dog
+                        // Mascot
                         ZStack {
                             if controller.unlockSucceeded {
-                                // Success animation: dog scales up and fades
+                                // Success animation: mascot scales up and fades
                                 Image("Mascot")
                                     .resizable()
                                     .interpolation(.high)
@@ -53,11 +53,11 @@ struct LockScreenView: View {
                                     .frame(width: dogSize, height: dogSize)
                                     .scaleEffect(successScale)
                                     .opacity(2.0 - Double(successScale))
-                                    .shadow(color: Color("LockpawTeal").opacity(0.3), radius: 50, y: 0)
+                                    .shadow(color: Color("ApidaeHoney").opacity(0.3), radius: 50, y: 0)
                             } else {
                                 ZStack {
                                     Ellipse()
-                                        .fill(Color("LockpawTeal").opacity(0.02 + breathe * 0.02))
+                                        .fill(Color("ApidaeHoney").opacity(0.02 + breathe * 0.02))
                                         .frame(width: dogSize * 0.45, height: dogSize * 0.1)
                                         .blur(radius: 12)
                                         .offset(y: dogSize * 0.45)
@@ -67,7 +67,7 @@ struct LockScreenView: View {
                                         .interpolation(.high)
                                         .scaledToFit()
                                         .frame(width: dogSize, height: dogSize)
-                                        .shadow(color: Color("LockpawTeal").opacity(0.15 + breathe * 0.08), radius: 35 + breathe * 8, y: 10)
+                                        .shadow(color: Color("ApidaeHoney").opacity(0.15 + breathe * 0.08), radius: 35 + breathe * 8, y: 10)
                                         .shadow(color: .black.opacity(0.15), radius: 45, y: 30)
                                         .offset(y: breathe * 4)
                                 }
@@ -90,8 +90,8 @@ struct LockScreenView: View {
                             } else if let error = controller.lastError {
                                 Text(error)
                                     .font(.system(size: compact ? 13 : 14, weight: .semibold))
-                                    .foregroundStyle(Color("LockpawError"))
-                                    .shadow(color: Color("LockpawError").opacity(0.15), radius: 8)
+                                    .foregroundStyle(Color("ApidaeError"))
+                                    .shadow(color: Color("ApidaeError").opacity(0.15), radius: 8)
                             } else if showMessage {
                                 Text(message)
                                     .font(.system(size: compact ? 14 : 16, weight: .regular))
@@ -133,7 +133,7 @@ struct LockScreenView: View {
                                 ProgressView()
                                     .progressViewStyle(.circular)
                                     .scaleEffect(1.2)
-                                    .tint(Color("LockpawTeal"))
+                                    .tint(Color("ApidaeHoney"))
                                 VStack(spacing: 4) {
                                     Text("Use Touch ID or enter your Mac password")
                                         .font(.system(size: 13, weight: .regular))
@@ -250,7 +250,7 @@ struct LockScreenView: View {
             ).ignoresSafeArea()
 
             RadialGradient(
-                colors: [Color("LockpawTeal").opacity(0.015 + breathe * 0.005), .clear],
+                colors: [Color("ApidaeHoney").opacity(0.015 + breathe * 0.005), .clear],
                 center: .bottom, startRadius: 0, endRadius: 500
             ).ignoresSafeArea().allowsHitTesting(false)
 
@@ -261,13 +261,13 @@ struct LockScreenView: View {
     private func colorPools(geo: GeometryProxy) -> some View {
         ZStack {
             Circle()
-                .fill(RadialGradient(colors: [Color("LockpawTeal").opacity(0.04 + breathe * 0.04), .clear], center: .center, startRadius: 0, endRadius: 300 + breathe * 40))
+                .fill(RadialGradient(colors: [Color("ApidaeHoney").opacity(0.04 + breathe * 0.04), .clear], center: .center, startRadius: 0, endRadius: 300 + breathe * 40))
                 .frame(width: 600, height: 600)
                 .position(x: geo.size.width * 0.35 + drift * 10, y: geo.size.height * 0.3 + breathe * 8)
                 .blur(radius: 80)
 
             Circle()
-                .fill(RadialGradient(colors: [Color("LockpawAmber").opacity(0.02 + drift * 0.025), .clear], center: .center, startRadius: 0, endRadius: 250 + drift * 30))
+                .fill(RadialGradient(colors: [Color("ApidaeAmber").opacity(0.02 + drift * 0.025), .clear], center: .center, startRadius: 0, endRadius: 250 + drift * 30))
                 .frame(width: 500, height: 500)
                 .position(x: geo.size.width * 0.65 - drift * 8, y: geo.size.height * 0.65 - breathe * 6)
                 .blur(radius: 60)

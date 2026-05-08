@@ -1,7 +1,7 @@
 import IOKit.pwr_mgt
 import os.log
 
-private let logger = Logger(subsystem: "com.eriknielsen.lockpaw", category: "SleepPreventer")
+private let logger = Logger(subsystem: "app.getapidae.mac", category: "SleepPreventer")
 
 class SleepPreventer {
     private var assertionID: IOPMAssertionID = IOPMAssertionID(0)
@@ -9,7 +9,7 @@ class SleepPreventer {
 
     func preventSleep() {
         guard !isActive else { return }
-        let reason = "Lockpaw: Screen locked — preventing idle sleep" as CFString
+        let reason = "Apidae: hive closed — preventing idle sleep" as CFString
         let result = IOPMAssertionCreateWithName(
             kIOPMAssertionTypeNoIdleSleep as CFString,
             IOPMAssertionLevel(kIOPMAssertionLevelOn),

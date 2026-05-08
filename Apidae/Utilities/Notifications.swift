@@ -2,11 +2,11 @@ import Foundation
 
 /// All notification names in one place.
 extension Notification.Name {
-    static let lockpawLock = Notification.Name("lockpawLock")
-    static let lockpawUnlock = Notification.Name("lockpawUnlock")
-    static let lockpawUnlockPassword = Notification.Name("lockpawUnlockPassword")
-    static let lockpawInputBlockerFailed = Notification.Name("lockpawInputBlockerFailed")
-    static let lockpawSessionLost = Notification.Name("lockpawSessionLost")
-    static let toggleLockpaw = Notification.Name("toggleLockpaw")
-    static let lockpawHotkeyPreferenceChanged = Notification.Name("lockpawHotkeyPreferenceChanged")
+    static let apidaeLock = Notification.Name("apidaeLock")
+    static let apidaeUnlock = Notification.Name("apidaeUnlock")
+    static let apidaeUnlockPassword = Notification.Name("apidaeUnlockPassword")
+    static let apidaeInputBlockerFailed = Notification.Name("apidaeInputBlockerFailed")
+    static let apidaeSessionLost = Notification.Name("apidaeSessionLost")
+    static let toggleApidae = Notification.Name("toggleApidae")
+    static let apidaeHotkeyPreferenceChanged = Notification.Name("apidaeHotkeyPreferenceChanged")
 }

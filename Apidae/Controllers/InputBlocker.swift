@@ -2,13 +2,13 @@ import Cocoa
 import Carbon
 import os.log
 
-private let logger = Logger(subsystem: "com.eriknielsen.lockpaw", category: "InputBlocker")
+private let logger = Logger(subsystem: "app.getapidae.mac", category: "InputBlocker")
 
 class InputBlocker {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var isBlocking = false
-    private static let inputQueue = DispatchQueue(label: "com.eriknielsen.lockpaw.input", qos: .userInteractive)
+    private static let inputQueue = DispatchQueue(label: "app.getapidae.mac.input", qos: .userInteractive)
 
     /// Cached hotkey values — read once, used in the event tap callback
     /// to avoid hitting UserDefaults on every keystroke.
@@ -30,7 +30,7 @@ class InputBlocker {
         reloadHotkeyConfig()
 
         hotkeyObserver = NotificationCenter.default.addObserver(
-            forName: .lockpawHotkeyPreferenceChanged,
+            forName: .apidaeHotkeyPreferenceChanged,
             object: nil,
             queue: .main
         ) { [weak self] _ in
@@ -86,7 +86,7 @@ class InputBlocker {
                     // Let the unlock hotkey through
                     if modifiersMatch && keyCode == savedKeyCode {
                         InputBlocker.inputQueue.async {
-                            NotificationCenter.default.post(name: .toggleLockpaw, object: nil)
+                            NotificationCenter.default.post(name: .toggleApidae, object: nil)
                         }
                         return nil
                     }
@@ -106,7 +106,7 @@ class InputBlocker {
 
         guard let eventTap = eventTap else {
             logger.error("Could not create event tap")
-            NotificationCenter.default.post(name: .lockpawInputBlockerFailed, object: nil)
+            NotificationCenter.default.post(name: .apidaeInputBlockerFailed, object: nil)
             return
         }
 
