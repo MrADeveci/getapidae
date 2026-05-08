@@ -1,6 +1,6 @@
 import XCTest
 import AppKit
-@testable import Lockpaw
+@testable import Apidae
 
 final class HotkeyConfigTests: XCTestCase {
 

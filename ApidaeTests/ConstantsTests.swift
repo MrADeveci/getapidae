@@ -1,5 +1,5 @@
 import XCTest
-@testable import Lockpaw
+@testable import Apidae
 
 final class ConstantsTests: XCTestCase {
 

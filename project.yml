@@ -1,14 +1,9 @@
-name: Lockpaw
+name: Apidae
 options:
-  bundleIdPrefix: com.eriknielsen
+  bundleIdPrefix: app.getapidae
   deploymentTarget:
     macOS: "14.0"
   generateEmptyDirectories: true
-
-packages:
-  Sparkle:
-    url: https://github.com/sparkle-project/Sparkle
-    from: "2.0.0"
 
 settings:
   base:
@@ -16,44 +11,42 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "14.0"
 
 schemes:
-  Lockpaw:
+  Apidae:
     build:
       targets:
-        Lockpaw: all
-        LockpawTests: [test]
+        Apidae: all
+        ApidaeTests: [test]
     test:
       targets:
-        - LockpawTests
+        - ApidaeTests
 
 targets:
-  Lockpaw:
+  Apidae:
     type: application
     platform: macOS
     sources:
-      - path: Lockpaw
+      - path: Apidae
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.eriknielsen.lockpaw
-        PRODUCT_NAME: Lockpaw
-        INFOPLIST_FILE: Lockpaw/Info.plist
-        CODE_SIGN_ENTITLEMENTS: Lockpaw/Lockpaw.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: app.getapidae.mac
+        PRODUCT_NAME: Apidae
+        INFOPLIST_FILE: Apidae/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Apidae/Apidae.entitlements
         CODE_SIGN_STYLE: Automatic
         ENABLE_HARDENED_RUNTIME: YES
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
         COMBINE_HIDPI_IMAGES: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-    dependencies:
-      - package: Sparkle
-  LockpawTests:
+  ApidaeTests:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - path: LockpawTests
+      - path: ApidaeTests
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.eriknielsen.lockpaw.tests
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Lockpaw.app/Contents/MacOS/Lockpaw"
+        PRODUCT_BUNDLE_IDENTIFIER: app.getapidae.mac.tests
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Apidae.app/Contents/MacOS/Apidae"
         BUNDLE_LOADER: "$(TEST_HOST)"
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
-      - target: Lockpaw
+      - target: Apidae
