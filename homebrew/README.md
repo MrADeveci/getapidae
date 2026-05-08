@@ -1,30 +1,24 @@
-# Homebrew Tap for Lockpaw
+# Homebrew Tap for Apidae
 
-This is a [Homebrew](https://brew.sh) tap for **Lockpaw**, a macOS menu bar screen guard.
+This is a [Homebrew](https://brew.sh) tap for **Apidae**, a macOS menu bar screen cover for AI agents and background tasks.
 
 ## Installation
 
 ### Via this tap
 
 ```bash
-brew tap sorkila/lockpaw https://github.com/sorkila/lockpaw
-brew install --cask lockpaw
-```
-
-### Via homebrew-cask (if published)
-
-```bash
-brew install --cask lockpaw
+brew tap mradeveci/apidae https://github.com/MrADeveci/getapidae
+brew install --cask apidae
 ```
 
 ## Uninstall
 
 ```bash
-brew uninstall --cask lockpaw
+brew uninstall --cask apidae
 ```
 
 To also remove preferences:
 
 ```bash
-brew uninstall --zap --cask lockpaw
+brew uninstall --zap --cask apidae
 ```

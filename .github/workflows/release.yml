@@ -25,8 +25,8 @@ jobs:
       - name: Build release (unsigned)
         run: |
           set -o pipefail
-          xcodebuild -project Lockpaw.xcodeproj \
-            -scheme Lockpaw \
+          xcodebuild -project Apidae.xcodeproj \
+            -scheme Apidae \
             -configuration Release \
             -derivedDataPath build/DerivedData \
             -destination 'platform=macOS' \
@@ -36,12 +36,12 @@ jobs:
 
       # ── Import signing certificate (conditional) ────────────────────────
       # Requires secrets:
-      #   CERTIFICATE_P12_BASE64  — base64-encoded Developer ID Application .p12
-      #   CERTIFICATE_PASSWORD    — password for the .p12 file
-      #   DEVELOPER_ID_APPLICATION — identity name, e.g. "Developer ID Application: Erik Nielsen (XXXXXXXXXX)"
-      #   NOTARIZE_APPLE_ID       — Apple ID email for notarytool
-      #   NOTARIZE_PASSWORD       — app-specific password for notarytool
-      #   APPLE_TEAM_ID           — 10-char team ID
+      #   CERTIFICATE_P12_BASE64    — base64-encoded Developer ID Application .p12
+      #   CERTIFICATE_PASSWORD      — password for the .p12 file
+      #   DEVELOPER_ID_APPLICATION  — identity name, e.g. "Developer ID Application: Your Name (XXXXXXXXXX)"
+      #   NOTARIZE_APPLE_ID         — Apple ID email for notarytool
+      #   NOTARIZE_PASSWORD         — app-specific password for notarytool
+      #   APPLE_TEAM_ID             — 10-char team ID
       - name: Import signing certificate
         if: env.HAS_SIGNING_SECRETS == 'true'
         env:
@@ -88,39 +88,16 @@ jobs:
         env:
           DEVELOPER_ID_APPLICATION: ${{ secrets.DEVELOPER_ID_APPLICATION }}
         run: |
-          APP_PATH="build/DerivedData/Build/Products/Release/Lockpaw.app"
-          SPARKLE_FW="${APP_PATH}/Contents/Frameworks/Sparkle.framework"
-          SPARKLE_VER="${SPARKLE_FW}/Versions/B"
-
-          sign_item() {
-            codesign --force --sign "$DEVELOPER_ID_APPLICATION" --options runtime --timestamp "$1"
-          }
-
-          # Sign inside-out: Sparkle internals → XPC → framework → app
-          for xpc in "${SPARKLE_VER}/XPCServices/Downloader.xpc" "${SPARKLE_VER}/XPCServices/Installer.xpc"; do
-            [ -d "${xpc}" ] || continue
-            sign_item "${xpc}/Contents/MacOS/$(basename "${xpc}" .xpc)"
-            sign_item "${xpc}"
-          done
-
-          [ -f "${SPARKLE_VER}/Autoupdate" ] && sign_item "${SPARKLE_VER}/Autoupdate"
-
-          if [ -d "${SPARKLE_VER}/Updater.app" ]; then
-            sign_item "${SPARKLE_VER}/Updater.app/Contents/MacOS/Updater"
-            sign_item "${SPARKLE_VER}/Updater.app"
-          fi
-
-          sign_item "${SPARKLE_FW}"
-          sign_item "${APP_PATH}"
-
-          codesign --verify --verbose "${APP_PATH}"
+          APP_PATH="build/DerivedData/Build/Products/Release/Apidae.app"
+          codesign --force --sign "$DEVELOPER_ID_APPLICATION" --options runtime --timestamp "$APP_PATH"
+          codesign --verify --verbose "$APP_PATH"
 
       - name: Create DMG
         if: steps.check-secrets.outputs.can_sign == 'true'
         run: |
-          APP_PATH="build/DerivedData/Build/Products/Release/Lockpaw.app"
+          APP_PATH="build/DerivedData/Build/Products/Release/Apidae.app"
           DMG_DIR="build/dmg"
-          DMG_PATH="build/Lockpaw.dmg"
+          DMG_PATH="build/Apidae.dmg"
 
           mkdir -p "$DMG_DIR"
           cp -R "$APP_PATH" "$DMG_DIR/"
@@ -131,15 +108,13 @@ jobs:
           mv "$DMG_DIR/Applications alias" "$DMG_DIR/Applications" 2>/dev/null || true
 
           create-dmg \
-            --volname "Lockpaw" \
-            --volicon "scripts/dmg-volume-icon.icns" \
-            --background "scripts/dmg-background@2x.png" \
+            --volname "Apidae" \
             --window-pos 200 120 \
             --window-size 660 400 \
             --icon-size 96 \
             --text-size 14 \
-            --icon "Lockpaw.app" 170 180 \
-            --hide-extension "Lockpaw.app" \
+            --icon "Apidae.app" 170 180 \
+            --hide-extension "Apidae.app" \
             --icon "Applications" 490 180 \
             --no-internet-enable \
             "$DMG_PATH" \
@@ -152,7 +127,7 @@ jobs:
           NOTARIZE_PASSWORD: ${{ secrets.NOTARIZE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          DMG_PATH="build/Lockpaw.dmg"
+          DMG_PATH="build/Apidae.dmg"
 
           xcrun notarytool submit "$DMG_PATH" \
             --apple-id "$NOTARIZE_APPLE_ID" \
@@ -176,8 +151,8 @@ jobs:
           fi
 
           # Upload DMG if signing/notarization succeeded
-          if [ "$CAN_SIGN" = "true" ] && [ -f "build/Lockpaw.dmg" ]; then
-            gh release upload "$TAG" "build/Lockpaw.dmg#Lockpaw.dmg" --clobber
+          if [ "$CAN_SIGN" = "true" ] && [ -f "build/Apidae.dmg" ]; then
+            gh release upload "$TAG" "build/Apidae.dmg#Apidae.dmg" --clobber
           fi
 
       # ── Cleanup keychain ────────────────────────────────────────────────

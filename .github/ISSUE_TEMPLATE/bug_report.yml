@@ -16,8 +16,8 @@ body:
       label: Steps to reproduce
       description: Steps to reproduce the behavior.
       placeholder: |
-        1. Open Lockpaw
-        2. Press hotkey to lock
+        1. Open Apidae
+        2. Press hotkey to cover screen
         3. ...
     validations:
       required: true
@@ -41,11 +41,11 @@ body:
       required: true
 
   - type: input
-    id: lockpaw-version
+    id: apidae-version
     attributes:
-      label: Lockpaw version
+      label: Apidae version
       description: Check Settings or About for the version number.
-      placeholder: "1.0.4"
+      placeholder: "0.1.0"
     validations:
       required: true
 

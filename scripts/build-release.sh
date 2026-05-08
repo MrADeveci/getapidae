@@ -1,11 +1,16 @@
 #!/bin/bash
 set -e
 
-APP_NAME="Lockpaw"
-BUNDLE_ID="com.eriknielsen.lockpaw"
-SIGNING_IDENTITY="Developer ID Application: Erik Nielsen (78ACS592J2)"
-APPLE_ID="erik@sorkila.com"
-TEAM_ID="78ACS592J2"
+APP_NAME="Apidae"
+BUNDLE_ID="app.getapidae.mac"
+
+# TODO: fill in once an Apple Developer account is set up.
+# After that, also run once locally to register the notarytool keychain profile:
+#   xcrun notarytool store-credentials "apidae-notarize" \
+#     --apple-id "$APPLE_ID" --team-id "$TEAM_ID" --password "<app-specific-password>"
+SIGNING_IDENTITY="Developer ID Application: TODO YOUR NAME (TODO_TEAM_ID)"
+APPLE_ID="TODO@example.com"
+TEAM_ID="TODO_TEAM_ID"
 
 echo "==> Generating Xcode project..."
 xcodegen generate
@@ -23,34 +28,12 @@ APP_PATH="build/DerivedData/Build/Products/Release/${APP_NAME}.app"
 
 echo "==> Preparing clean copy for signing..."
 # Copy to /tmp to escape iCloud-managed xattrs that can't be cleared in ~/Documents
-SIGN_DIR=$(mktemp -d /tmp/lockpaw-sign.XXXXXX)
+SIGN_DIR=$(mktemp -d /tmp/apidae-sign.XXXXXX)
 ditto --norsrc "${APP_PATH}" "${SIGN_DIR}/${APP_NAME}.app"
 APP_PATH="${SIGN_DIR}/${APP_NAME}.app"
 
 echo "==> Signing with Developer ID + hardened runtime..."
-SPARKLE_FW="${APP_PATH}/Contents/Frameworks/Sparkle.framework"
-SPARKLE_VER="${SPARKLE_FW}/Versions/B"
-
-sign_item() {
-  codesign --force --sign "${SIGNING_IDENTITY}" --options runtime --timestamp "$1"
-}
-
-# Sign inside-out: Sparkle internals → XPC → framework → app
-for xpc in "${SPARKLE_VER}/XPCServices/Downloader.xpc" "${SPARKLE_VER}/XPCServices/Installer.xpc"; do
-  [ -d "${xpc}" ] || continue
-  sign_item "${xpc}/Contents/MacOS/$(basename "${xpc}" .xpc)"
-  sign_item "${xpc}"
-done
-
-[ -f "${SPARKLE_VER}/Autoupdate" ] && sign_item "${SPARKLE_VER}/Autoupdate"
-
-if [ -d "${SPARKLE_VER}/Updater.app" ]; then
-  sign_item "${SPARKLE_VER}/Updater.app/Contents/MacOS/Updater"
-  sign_item "${SPARKLE_VER}/Updater.app"
-fi
-
-sign_item "${SPARKLE_FW}"
-sign_item "${APP_PATH}"
+codesign --force --sign "${SIGNING_IDENTITY}" --options runtime --timestamp "${APP_PATH}"
 
 echo "==> Verifying signature..."
 codesign --verify --verbose "${APP_PATH}"
@@ -78,13 +61,7 @@ cp -R "${DMG_DIR}/${APP_NAME}.app" "${MOUNT_DIR}/"
 osascript -e "tell application \"Finder\" to make new alias file at POSIX file \"${MOUNT_DIR}\" to POSIX file \"/Applications\""
 mv "${MOUNT_DIR}/Applications alias" "${MOUNT_DIR}/Applications" 2>/dev/null || true
 
-# Set up background image
-mkdir -p "${MOUNT_DIR}/.background"
-cp "scripts/dmg-background@2x.png" "${MOUNT_DIR}/.background/"
-
-# Set volume icon
 # Apply Finder window styling via AppleScript
-# NOTE: volume icon is set AFTER this step — AppleScript's "update" deletes it
 echo "   Applying Finder window layout..."
 VOLNAME=$(basename "${MOUNT_DIR}")
 osascript << APPLESCRIPT
@@ -99,14 +76,8 @@ tell application "Finder"
     set arrangement of theViewOptions to not arranged
     set icon size of theViewOptions to 96
     set text size of theViewOptions to 14
-    set background picture of theViewOptions to file ".background:dmg-background@2x.png"
-    -- Position only the two items we want visible
     set position of item "${APP_NAME}.app" to {170, 170}
     set position of item "Applications" to {490, 170}
-    -- Push everything else off-screen
-    try
-      set position of item ".background" to {900, 900}
-    end try
     try
       set position of item ".fseventsd" to {900, 900}
     end try
@@ -122,10 +93,6 @@ tell application "Finder"
 end tell
 APPLESCRIPT
 
-# Set volume icon AFTER AppleScript (the "update" command deletes .VolumeIcon.icns)
-cp "scripts/dmg-volume-icon.icns" "${MOUNT_DIR}/.VolumeIcon.icns"
-SetFile -a C "${MOUNT_DIR}"
-
 # Convert to compressed read-only (single conversion, no metadata loss)
 sync
 hdiutil detach "${MOUNT_DIR}"
@@ -135,28 +102,12 @@ rm -rf "${DMG_DIR}"
 
 echo "==> Notarizing..."
 xcrun notarytool submit "${DMG_PATH}" \
-  --keychain-profile "lockpaw-notarize" \
+  --keychain-profile "apidae-notarize" \
   --wait
 
 echo "==> Stapling notarization ticket..."
 xcrun stapler staple "${DMG_PATH}"
 
-# Set custom icon on the DMG file itself (visible in Finder before mounting)
-echo "==> Setting DMG file icon..."
-osascript -e '
-use framework "AppKit"
-set theIcon to current application'\''s NSImage'\''s alloc()'\''s initWithContentsOfFile:"'"$(pwd)/scripts/dmg-volume-icon.icns"'"
-current application'\''s NSWorkspace'\''s sharedWorkspace()'\''s setIcon:theIcon forFile:"'"$(pwd)/${DMG_PATH}"'" options:0
-'
-
 echo ""
 echo "==> Done! DMG ready at: ${DMG_PATH}"
-echo "    Upload this to getlockpaw.com"
-
-# ==> Sparkle appcast generation
-# After uploading the DMG, run generate_appcast to update the appcast XML.
-# Install Sparkle tools: https://github.com/sparkle-project/Sparkle/releases
-# Then run:
-#   generate_appcast /path/to/dmg/directory
-# This will create/update appcast.xml with the new release entry.
-# Upload the resulting appcast.xml to https://getlockpaw.com/appcast.xml
+echo "    Upload this to getapidae.com or attach to a GitHub release."

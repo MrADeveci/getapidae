@@ -19,17 +19,11 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Resolve packages
-        run: |
-          xcodebuild -project Lockpaw.xcodeproj \
-            -scheme Lockpaw \
-            -resolvePackageDependencies
-
       - name: Build
         run: |
           set -o pipefail
-          xcodebuild -project Lockpaw.xcodeproj \
-            -scheme Lockpaw \
+          xcodebuild -project Apidae.xcodeproj \
+            -scheme Apidae \
             -configuration Debug \
             -destination 'platform=macOS' \
             build 2>&1 | xcbeautify
@@ -37,8 +31,8 @@ jobs:
       - name: Test
         run: |
           set -o pipefail
-          xcodebuild -project Lockpaw.xcodeproj \
-            -scheme Lockpaw \
+          xcodebuild -project Apidae.xcodeproj \
+            -scheme Apidae \
             -configuration Debug \
             -destination 'platform=macOS' \
             test 2>&1 | xcbeautify
