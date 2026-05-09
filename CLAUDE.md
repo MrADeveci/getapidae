@@ -1,6 +1,6 @@
 # CLAUDE.md — Apidae
 
-This file is the briefing document for Claude Code sessions on this repo. It describes the project as it stands today, including the in-flight rename from Lockpaw to Apidae.
+This file is the briefing document for Claude Code sessions on this repo.
 
 ## What this project is
 
@@ -13,11 +13,13 @@ This file is the briefing document for Claude Code sessions on this repo. It des
 - **Target audience**: Cowork users, Claude Code users, AI-agent workflows on macOS — people who run long-running computer tasks (builds, agents, downloads, SSH sessions) and want to step away without locking the Mac in the OS sense.
 - **Licence**: MIT, forked from [Lockpaw](https://github.com/sorkila/lockpaw) by Erik Nielsen. Erik's copyright and the MIT terms are preserved in `LICENSE`.
 
-## Status: rebrand in progress
+## Status
 
-The repo on disk is still **Lockpaw** at the time of writing. A full rename plan covering bundle ID, source folders, type names, notification names, asset catalog, Sparkle removal, README rewrite, Homebrew cask, and the Raycast extension was prepared in conversation. When working in this repo, check whether the rename has been executed (look for `Apidae/` and `ApidaeTests/` directories, `project.yml` `name: Apidae`, `Constants.appName == "Apidae"`) before assuming brand state.
+The Lockpaw → Apidae rebrand is complete: source folders, bundle id (`app.getapidae.mac`), URL scheme (`apidae://`), notification names, asset catalogue, palette (honey-yellow primary), copy, README, LICENSE, Homebrew cask, and CI/release workflows are all on the new brand. Bee artwork shipped in `Apidae/Resources/Assets.xcassets/` (AppIcon, Mascot, MenuBarIcon).
 
-Sparkle auto-updates were planned for removal during the rebrand cut and to be reintroduced later when releases start shipping from `getapidae.com/appcast.xml`. If you see no `Sparkle` references in `project.yml`, that decision was followed through. The previous `SUPublicEDKey` belonged to the original author and should never be reused — any future Sparkle reintroduction must use a freshly generated ed25519 keypair.
+Sparkle auto-updates were removed during the cut and will return when releases ship from `getapidae.com/appcast.xml`. The previous `SUPublicEDKey` belonged to the original author and must never be reused — any future Sparkle reintroduction needs a freshly generated ed25519 keypair.
+
+Code-signing identity, Apple ID, and team id in `scripts/build-release.sh` and the GitHub release workflow are TODO placeholders pending an Apple Developer account.
 
 ## Architecture at a glance
 
@@ -50,13 +52,13 @@ Apidae/                    (was: Lockpaw/)
    ├─ AppIcon.appiconset
    ├─ Mascot.imageset       Brand-neutral asset name; artwork = the bee
    ├─ MenuBarIcon.imageset  Template-rendered menu bar glyph
-   └─ Colors/               ApidaeTeal, ApidaeAmber, ApidaeError, (+Success, Violet — currently unreferenced)
+   └─ Colors/               ApidaeHoney (#F5B800 primary), ApidaeAmber, ApidaeError
 ```
 
 ## Key technical decisions worth knowing
 
 - **Hotkey via CGEventTap on a background thread.** Carbon's `RegisterEventHotKey` is unreliable in `LSUIElement` apps because the main run loop doesn't pump events until first user interaction. `HotkeyManager` creates a `.cgSessionEventTap` with `.listenOnly` and runs `CFRunLoopRun()` on its own `Thread` so the tap fires immediately at launch. Requires Accessibility permission.
-- **Two distinct event taps.** `HotkeyManager` is `.listenOnly` (passive observation). `InputBlocker` uses `.defaultTap` so it can return `nil` and actually *block* keyboard, scroll, and tablet events while locked. The unlock hotkey is checked inside the blocker callback and let through (well, posts a notification and returns nil). Mouse events pass through to the overlay so SwiftUI buttons remain clickable.
+- **Two distinct event taps, two TCC permissions.** `HotkeyManager` is `.listenOnly` (passive observation) and only needs **Accessibility**. `InputBlocker` uses `.defaultTap` so it can return `nil` and actually *block* keyboard, scroll, and tablet events while locked — and `.defaultTap` requires **Input Monitoring** (`kTCCServiceListenEvent`) on top of Accessibility. Without Input Monitoring the input blocker silently fails to install the tap, the overlay still shows, but keystrokes pass through to whatever's underneath. Both permissions are requested by the onboarding flow but Input Monitoring is the one that's easiest to forget after a fresh install or rebuild. The unlock hotkey is checked inside the blocker callback and let through (well, posts a notification and returns nil). Mouse events pass through to the overlay so SwiftUI buttons remain clickable.
 - **Tap re-enable on disabledByTimeout/disabledByUserInput.** Both taps re-enable themselves synchronously in their callback when macOS suspends them — otherwise the lock would silently break after a stall.
 - **Overlay at `CGShieldingWindowLevel()`.** Highest level in the system; sits above Spotlight, Notification Center, screen savers. One overlay window per `NSScreen`. On `didChangeScreenParametersNotification`, windows are torn down and recreated, with a true cancellable debounce so a burst of monitor-connect events only triggers one rebuild. **Never call `window.close()` during fade-in** — it crashes in `_NSWindowTransformAnimation dealloc`. Use `orderOut(nil); contentView = nil` for cleanup instead.
 - **State machine.** `LockState.canTransition(to:)` validates every move; `LockController.transitionTo()` is the only mutator and logs+rejects invalid jumps. State is also re-checked after async auth returns — the user can lose the session (Fast User Switch, sleep) mid-evaluation.
@@ -90,21 +92,24 @@ xcodebuild -project Apidae.xcodeproj -scheme Apidae -configuration Debug test
 
 There are 34 unit tests across `ApidaeTests/` covering `LockState` transitions, `Constants` formatting, and `HotkeyConfig` conflict detection. They are pure-logic tests; they don't touch the event taps, overlay windows, or `LAContext`.
 
-**TCC gotcha.** Each Debug rebuild changes the binary signature, which invalidates Accessibility permission. After every build, run:
+**TCC gotcha.** Each Debug rebuild changes the binary signature, which invalidates the TCC permissions Apidae needs. Two services to reset:
 
 ```bash
 tccutil reset Accessibility app.getapidae.mac
+tccutil reset ListenEvent app.getapidae.mac    # "Input Monitoring" in System Settings UI
 ```
 
-…then re-grant Accessibility in System Settings. Without this, the hotkey and input blocker silently fail.
+…then re-grant both in System Settings → Privacy & Security. Symptoms if you skip:
+
+- **Accessibility missing**: hotkey doesn't fire at all (the listen-only tap can't be created).
+- **Input Monitoring missing**: hotkey fires and the overlay shows, but the `.defaultTap` in `InputBlocker` silently fails so keyboard input passes through to whatever's underneath. This one is easy to mistake for a code regression — check Input Monitoring first.
 
 CI runs build + tests on `macos-15` for every push to `main` and every PR (`.github/workflows/ci.yml`). Tagged releases (`v*`) trigger `release.yml`, which builds Release, signs with Developer ID, packages a DMG, notarizes, and creates a GitHub Release with the DMG attached. The release pipeline is **conditional on signing secrets being set**; absent the secrets, only the unsigned build runs.
 
 ## Distribution
 
-- **DMG**: built by `scripts/build-release.sh` locally (or the release workflow on tag push). Uses `create-dmg` in CI; in the local script, builds an HFS+ R/W DMG and uses AppleScript-driven Finder layout, then converts to UDZO. The `Applications` entry is a Finder alias, not a symlink — symlinks render with a broken-icon overlay on Sonoma+.
-- **Homebrew cask**: `homebrew/Casks/apidae.rb`. Tap from `brew tap <gh-org>/apidae <repo-url>` then `brew install --cask apidae`.
-- **Raycast extension**: `apidae-raycast/`. Four commands (Lock, Unlock with Touch ID, Unlock with Password, Toggle), each just calls `apidae://<command>` via `open()`. Useful because Raycast lets users assign their own hotkeys per command, beyond Apidae's single global one.
+- **DMG**: built by `scripts/build-release.sh` locally (or the release workflow on tag push). Uses `create-dmg` in CI; in the local script, builds an HFS+ R/W DMG and uses AppleScript-driven Finder layout, then converts to UDZO. The `Applications` entry is a Finder alias, not a symlink — symlinks render with a broken-icon overlay on Sonoma+. Both pipelines need real signing identities filled in (currently TODO placeholders).
+- **Homebrew cask**: `homebrew/Casks/apidae.rb`. Tap from `brew tap mradeveci/apidae https://github.com/MrADeveci/getapidae` then `brew install --cask apidae`. The cask currently has `sha256 :no_check` and will need a real hash once a signed DMG ships.
 
 ## House style for working in this repo
 
