@@ -144,7 +144,11 @@ struct SettingsView: View {
             // Lock now
             Section {
                 Button {
-                    NotificationCenter.default.post(name: .apidaeLock, object: nil)
+                    NotificationCenter.default.post(
+                        name: .apidaeLock,
+                        object: nil,
+                        userInfo: [Notification.triggerKey: TriggerMethod.settingsButton.rawValue]
+                    )
                 } label: {
                     HStack {
                         Label("Lock Screen Now", systemImage: "lock.fill")

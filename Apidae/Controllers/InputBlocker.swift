@@ -86,14 +86,26 @@ class InputBlocker {
                     // Let the unlock hotkey through
                     if modifiersMatch && keyCode == savedKeyCode {
                         InputBlocker.inputQueue.async {
-                            NotificationCenter.default.post(name: .toggleApidae, object: nil)
+                            NotificationCenter.default.post(
+                                name: .toggleApidae,
+                                object: nil,
+                                userInfo: [Notification.triggerKey: TriggerMethod.hotkey.rawValue]
+                            )
                         }
                         return nil
                     }
 
                     #if DEBUG
                     if flags.contains(.maskCommand) && flags.contains(.maskShift) && keyCode == 12 {
-                        DispatchQueue.main.async { NSApplication.shared.terminate(nil) }
+                        DispatchQueue.main.async {
+                            // Emergency exit — record as .force so the user can see it in stats later.
+                            NotificationCenter.default.post(
+                                name: .toggleApidae,
+                                object: nil,
+                                userInfo: [Notification.triggerKey: TriggerMethod.force.rawValue]
+                            )
+                            NSApplication.shared.terminate(nil)
+                        }
                         return nil
                     }
                     #endif

@@ -7,20 +7,20 @@ struct MenuBarView: View {
         Group {
             if controller.state == .unlocked {
                 Button {
-                    controller.lock()
+                    controller.lock(trigger: .menu)
                 } label: {
                     Label("Lock Screen", systemImage: "lock.fill")
                 }
                 .keyboardShortcut("l", modifiers: [.command, .shift])
             } else {
                 Button {
-                    controller.requestUnlock()
+                    controller.requestUnlock(trigger: .menu)
                 } label: {
                     Label("Unlock with Touch ID", systemImage: "touchid")
                 }
 
                 Button {
-                    controller.requestPasswordUnlock()
+                    controller.requestPasswordUnlock(trigger: .menu)
                 } label: {
                     Label("Unlock with Password", systemImage: "keyboard")
                 }
@@ -49,19 +49,19 @@ struct MenuBarView: View {
             }
             .keyboardShortcut("q")
         }
-        .onReceive(NotificationCenter.default.publisher(for: .apidaeLock)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .apidaeLock)) { note in
             if controller.state == .unlocked {
-                controller.lock()
+                controller.lock(trigger: note.trigger)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .apidaeUnlock)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .apidaeUnlock)) { note in
             if controller.state == .locked {
-                controller.requestUnlock()
+                controller.requestUnlock(trigger: note.trigger)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .apidaeUnlockPassword)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .apidaeUnlockPassword)) { note in
             if controller.state == .locked {
-                controller.requestPasswordUnlock()
+                controller.requestPasswordUnlock(trigger: note.trigger)
             }
         }
     }

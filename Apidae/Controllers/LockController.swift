@@ -20,6 +20,7 @@ class LockController: ObservableObject {
     private let inputBlocker = InputBlocker()
     private let authenticator = Authenticator()
     private let sleepPreventer = SleepPreventer()
+    private let statsRecorder: StatsRecorder?
 
     private var timer: Timer?
     private var sleepObserver: Any?
@@ -34,16 +35,26 @@ class LockController: ObservableObject {
     private var lastAuthFailTime: Date?
 
     init() {
+        let recorder: StatsRecorder?
+        do {
+            recorder = try StatsRecorder()
+        } catch {
+            logger.error("Stats unavailable: \(String(describing: error))")
+            recorder = nil
+        }
+        self.statsRecorder = recorder
+
         toggleObserver = NotificationCenter.default.addObserver(
             forName: .toggleApidae, object: nil, queue: .main
-        ) { [weak self] _ in
+        ) { [weak self] notification in
             guard let self else { return }
+            let trigger = notification.trigger
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 if self.state == .unlocked {
-                    self.lock()
+                    self.lock(trigger: trigger == .unknown ? .hotkey : trigger)
                 } else if self.state == .locked {
-                    self.quickUnlock()
+                    self.quickUnlock(trigger: trigger == .unknown ? .hotkey : trigger)
                 }
             }
         }
@@ -121,7 +132,7 @@ class LockController: ObservableObject {
 
     // MARK: - Public
 
-    func lock() {
+    func lock(trigger: TriggerMethod) {
         guard transitionTo(.locking) else { return }
         guard AccessibilityChecker.isEnabled else {
             AccessibilityChecker.promptIfNeeded()
@@ -181,17 +192,18 @@ class LockController: ObservableObject {
         startAccessibilityMonitoring()
         sessionWasLost = false
         transitionTo(.locked)
+        recordLockEvent(trigger: trigger)
     }
 
     /// Quick unlock via hotkey — no auth.
-    func quickUnlock() {
+    func quickUnlock(trigger: TriggerMethod = .hotkey) {
         guard state == .locked, !authenticationInProgress else { return }
         NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
-        unlock()
+        unlock(trigger: trigger)
     }
 
     /// Fallback unlock via Touch ID / Mac password.
-    func requestUnlock() {
+    func requestUnlock(trigger: TriggerMethod = .touchID) {
         guard state == .locked, !authenticationInProgress else { return }
 
         // Rate limit after 3 failures
@@ -230,14 +242,14 @@ class LockController: ObservableObject {
                 unlockSucceeded = true
                 try? await Task.sleep(nanoseconds: Constants.Timing.unlockSuccessAnimNs)
                 guard !Task.isCancelled else { return }
-                unlock()
+                unlock(trigger: trigger)
             } else {
                 handleAuthFailure()
             }
         }
     }
 
-    func requestPasswordUnlock() {
+    func requestPasswordUnlock(trigger: TriggerMethod = .password) {
         guard state == .locked, !authenticationInProgress else { return }
 
         if failCount >= Constants.Timing.maxAuthAttempts, let lastFail = lastAuthFailTime,
@@ -275,7 +287,7 @@ class LockController: ObservableObject {
                 unlockSucceeded = true
                 try? await Task.sleep(nanoseconds: Constants.Timing.unlockSuccessAnimNs)
                 guard !Task.isCancelled else { return }
-                unlock()
+                unlock(trigger: trigger)
             } else {
                 handleAuthFailure()
             }
@@ -314,7 +326,8 @@ class LockController: ObservableObject {
         return true
     }
 
-    private func unlock() {
+    private func unlock(trigger: TriggerMethod) {
+        recordUnlockEvent(trigger: trigger)
         stopAccessibilityMonitoring()
         stopTimer()
         errorClearTask?.cancel()
@@ -327,6 +340,7 @@ class LockController: ObservableObject {
     }
 
     private func forceUnlock() {
+        recordUnlockEvent(trigger: .force)
         authenticationInProgress = false
         isAuthenticating = false
         authenticator.cancelPending()
@@ -339,6 +353,19 @@ class LockController: ObservableObject {
         overlayManager.dismissOverlay()
         inputBlocker.stopBlocking()
         sleepPreventer.allowSleep()
+    }
+
+    private func recordLockEvent(trigger: TriggerMethod) {
+        guard let recorder = statsRecorder else { return }
+        let when = Date()
+        Task.detached { try? await recorder.recordLock(trigger: trigger, at: when) }
+    }
+
+    private func recordUnlockEvent(trigger: TriggerMethod) {
+        guard let recorder = statsRecorder, let start = lockStartTime else { return }
+        let when = Date()
+        let duration = max(0, when.timeIntervalSince(start))
+        Task.detached { try? await recorder.recordUnlock(trigger: trigger, durationSeconds: duration, at: when) }
     }
 
     private func stopTimer() {

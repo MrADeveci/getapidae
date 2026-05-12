@@ -153,7 +153,7 @@ struct LockScreenView: View {
 
                                 Button {
                                     NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
-                                    controller.requestUnlock()
+                                    controller.requestUnlock(trigger: .touchID)
                                 } label: {
                                     Text("Authenticate with Touch ID")
                                         .font(.system(size: 13, weight: .medium))

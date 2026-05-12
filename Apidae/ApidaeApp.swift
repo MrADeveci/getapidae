@@ -127,13 +127,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard now.timeIntervalSince(lastURLSchemeCall) > Constants.Timing.urlSchemeDebounce else { return }
         lastURLSchemeCall = now
 
+        let info: [AnyHashable: Any] = [Notification.triggerKey: TriggerMethod.urlScheme.rawValue]
         for url in urls {
             guard url.scheme == Constants.urlScheme else { continue }
             switch url.host {
-            case "lock": NotificationCenter.default.post(name: .apidaeLock, object: nil)
-            case "unlock": NotificationCenter.default.post(name: .apidaeUnlock, object: nil)
-            case "unlock-password": NotificationCenter.default.post(name: .apidaeUnlockPassword, object: nil)
-            case "toggle": NotificationCenter.default.post(name: .toggleApidae, object: nil)
+            case "lock": NotificationCenter.default.post(name: .apidaeLock, object: nil, userInfo: info)
+            case "unlock": NotificationCenter.default.post(name: .apidaeUnlock, object: nil, userInfo: info)
+            case "unlock-password": NotificationCenter.default.post(name: .apidaeUnlockPassword, object: nil, userInfo: info)
+            case "toggle": NotificationCenter.default.post(name: .toggleApidae, object: nil, userInfo: info)
             default: logger.warning("Unknown URL scheme: \(url.host ?? "nil")")
             }
         }
