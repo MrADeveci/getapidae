@@ -1,3 +1,4 @@
+import Foundation
 import IOKit.pwr_mgt
 import os.log
 
@@ -9,20 +10,29 @@ class SleepPreventer {
 
     func preventSleep() {
         guard !isActive else { return }
-        let reason = "Apidae: hive closed — preventing idle sleep" as CFString
         let result = IOPMAssertionCreateWithName(
-            kIOPMAssertionTypeNoIdleSleep as CFString,
+            kIOPMAssertionTypeNoIdleSleep as NSString,
             IOPMAssertionLevel(kIOPMAssertionLevelOn),
-            reason, &assertionID
+            "Apidae: hive closed — preventing idle sleep" as NSString,
+            &assertionID
         )
-        if result == kIOReturnSuccess { isActive = true }
-        else { logger.error("Failed to create sleep assertion: \(result)") }
+        if result == kIOReturnSuccess {
+            isActive = true
+            logger.notice("Created sleep assertion type=NoIdleSleepAssertion id=\(self.assertionID, privacy: .public) result=\(result, privacy: .public)")
+        } else {
+            logger.error("Failed to create sleep assertion type=NoIdleSleepAssertion result=\(result, privacy: .public)")
+        }
     }
 
     func allowSleep() {
         guard isActive else { return }
+        let releasedID = assertionID
         let result = IOPMAssertionRelease(assertionID)
-        if result != kIOReturnSuccess { logger.error("Failed to release sleep assertion: \(result)") }
+        if result == kIOReturnSuccess {
+            logger.notice("Released sleep assertion id=\(releasedID, privacy: .public) result=\(result, privacy: .public)")
+        } else {
+            logger.error("Failed to release sleep assertion id=\(releasedID, privacy: .public) result=\(result, privacy: .public)")
+        }
         isActive = false
     }
 
