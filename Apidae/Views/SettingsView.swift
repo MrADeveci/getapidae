@@ -10,6 +10,7 @@ struct SettingsView: View {
     @AppStorage("appearanceMode") private var appearanceMode = 0 // 0=System, 1=Light, 2=Dark
     @AppStorage("multiDisplayMode") private var multiDisplayMode = 0 // 0=Ambient, 1=Mirror
     @AppStorage("hotkeyDisplay") private var hotkeyDisplay = HotkeyConfig.defaultDisplay
+    @AppStorage("keepDisplayAwake") private var keepDisplayAwake = true
 
     @State private var isRecording = false
     @State private var hotkeyConflict: String?
@@ -58,6 +59,14 @@ struct SettingsView: View {
                                 }
                             }
                     }
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Toggle("Keep display on while locked", isOn: $keepDisplayAwake)
+                    Text("When off, the system stays awake but the display may turn off after its idle timeout.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 

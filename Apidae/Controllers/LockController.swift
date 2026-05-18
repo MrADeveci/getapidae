@@ -141,7 +141,11 @@ class LockController: ObservableObject {
         }
 
         NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
-        sleepPreventer.preventSleep()
+        // Read once at lock time. Toggling the "Keep display on while locked" setting
+        // while the lock is active does NOT update the live assertion — the change
+        // takes effect on the next lock.
+        let keepDisplayAwake = (UserDefaults.standard.object(forKey: "keepDisplayAwake") as? Bool) ?? true
+        sleepPreventer.preventSleep(keepDisplayAwake: keepDisplayAwake)
 
         let mirrorAll = UserDefaults.standard.integer(forKey: "multiDisplayMode") == 1
         guard overlayManager.showOverlay(contentFactory: { [weak self] index, isPrimary in
