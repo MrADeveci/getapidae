@@ -26,7 +26,8 @@ struct AllTimeTotals: Sendable, Equatable {
     let longestLock: LongestLock?
 }
 
-struct RecentEvent: Sendable, Equatable {
+struct RecentEvent: Sendable, Equatable, Identifiable {
+    let id: Int64
     let timestamp: Date
     let eventType: EventType
     let triggerMethod: TriggerMethod
@@ -173,12 +174,19 @@ actor StatsService {
         let events = try await recorder.allEvents()
         return events.suffix(limit).map {
             RecentEvent(
+                id: $0.id,
                 timestamp: $0.timestamp,
                 eventType: $0.eventType,
                 triggerMethod: $0.triggerMethod,
                 durationSeconds: $0.durationSeconds
             )
         }
+    }
+
+    /// Forwards to StatsRecorder.clearAll(); recorder posts .apidaeStatsDidChange,
+    /// which invalidates this service's cache via the observer task.
+    func clearAll() async throws {
+        try await recorder.clearAll()
     }
 
     // MARK: - Internal (tests)

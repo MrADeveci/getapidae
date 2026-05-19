@@ -1,12 +1,14 @@
 import SwiftUI
 
 struct SettingsView: View {
+    let statsService: StatsService?
+
     var body: some View {
         TabView {
             GeneralSettingsView()
                 .tabItem { Label("General", systemImage: "gearshape") }
 
-            StatsSettingsView()
+            StatsSettingsView(statsService: statsService)
                 .tabItem { Label("Stats", systemImage: "chart.bar") }
 
             AboutSettingsView()

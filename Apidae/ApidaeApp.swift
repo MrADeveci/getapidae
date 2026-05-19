@@ -19,7 +19,7 @@ struct ApidaeApp: App {
         }
 
         Settings {
-            SettingsView()
+            SettingsView(statsService: lockController.statsService)
         }
     }
 

@@ -21,6 +21,7 @@ class LockController: ObservableObject {
     private let authenticator = Authenticator()
     private let sleepPreventer = SleepPreventer()
     private let statsRecorder: StatsRecorder?
+    let statsService: StatsService?
 
     private var timer: Timer?
     private var sleepObserver: Any?
@@ -43,6 +44,7 @@ class LockController: ObservableObject {
             recorder = nil
         }
         self.statsRecorder = recorder
+        self.statsService = recorder.map { StatsService(recorder: $0) }
 
         toggleObserver = NotificationCenter.default.addObserver(
             forName: .toggleApidae, object: nil, queue: .main

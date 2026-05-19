@@ -134,8 +134,9 @@ actor StatsRecorder {
         return results
     }
 
-    func deleteAll() throws {
+    func clearAll() throws {
         try Self.exec(db, "DELETE FROM events;")
+        NotificationCenter.default.post(name: .apidaeStatsDidChange, object: nil)
     }
 
     // MARK: - Private

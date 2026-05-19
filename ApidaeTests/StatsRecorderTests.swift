@@ -75,9 +75,9 @@ final class StatsRecorderTests: XCTestCase {
         XCTAssertEqual(events.map(\.triggerMethod), triggers)
     }
 
-    // MARK: - Delete
+    // MARK: - Clear
 
-    func testDeleteAllRemovesAllRows() async throws {
+    func testClearAllRemovesAllRowsAndPostsNotification() async throws {
         let recorder = try StatsRecorder(location: .memory)
         let when = Date()
         try await recorder.recordLock(trigger: .hotkey, at: when)
@@ -85,7 +85,15 @@ final class StatsRecorderTests: XCTestCase {
         let beforeCount = try await recorder.allEvents().count
         XCTAssertEqual(beforeCount, 2)
 
-        try await recorder.deleteAll()
+        let notified = expectation(description: ".apidaeStatsDidChange after clearAll")
+        let token = NotificationCenter.default.addObserver(
+            forName: .apidaeStatsDidChange, object: nil, queue: nil
+        ) { _ in notified.fulfill() }
+        defer { NotificationCenter.default.removeObserver(token) }
+
+        try await recorder.clearAll()
+
+        await fulfillment(of: [notified], timeout: 1.0)
         let after = try await recorder.allEvents()
         XCTAssertEqual(after, [])
     }
