@@ -1,0 +1,211 @@
+import SwiftUI
+import ServiceManagement
+import Carbon
+
+struct GeneralSettingsView: View {
+    @AppStorage("lockMessage") private var message = Constants.defaultLockMessage
+    @AppStorage("showMessage") private var showMessage = true
+    @AppStorage("hotkeyEnabled") private var hotkeyEnabled = HotkeyConfig.defaultEnabled
+    @AppStorage("launchAtLogin") private var launchAtLogin = false
+    @AppStorage("appearanceMode") private var appearanceMode = 0 // 0=System, 1=Light, 2=Dark
+    @AppStorage("multiDisplayMode") private var multiDisplayMode = 0 // 0=Ambient, 1=Mirror
+    @AppStorage("hotkeyDisplay") private var hotkeyDisplay = HotkeyConfig.defaultDisplay
+    @AppStorage("keepDisplayAwake") private var keepDisplayAwake = true
+
+    @State private var isRecording = false
+    @State private var hotkeyConflict: String?
+    @State private var keyMonitor: Any?
+
+    var body: some View {
+        Form {
+            Section("Lock Screen") {
+                Picker("Multi-display", selection: $multiDisplayMode) {
+                    Text("Ambient on secondary").tag(0)
+                    Text("Same on all screens").tag(1)
+                }
+
+                Toggle("Show message", isOn: $showMessage)
+
+                if showMessage {
+                    LabeledContent("Text") {
+                        TextField("", text: $message, axis: .vertical)
+                            .lineLimit(1...3)
+                            .multilineTextAlignment(.trailing)
+                            .onChange(of: message) { _, newValue in
+                                if newValue.count > 120 {
+                                    message = String(newValue.prefix(120))
+                                }
+                            }
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Toggle("Keep display on while locked", isOn: $keepDisplayAwake)
+                    Text("When off, the system stays awake but the display may turn off after its idle timeout.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Section("Shortcuts") {
+                LabeledContent("Lock / Unlock") {
+                    Button {
+                        if isRecording {
+                            stopRecording()
+                        } else {
+                            startRecording()
+                        }
+                    } label: {
+                        Text(isRecording ? "Press shortcut…" : hotkeyDisplay)
+                            .font(.callout.monospaced())
+                            .foregroundStyle(isRecording ? Color("ApidaeHoney") : .secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                    .fill(isRecording ? Color("ApidaeHoney").opacity(0.1) : Color(.controlBackgroundColor))
+                                    .shadow(color: .primary.opacity(0.06), radius: 0.5, y: 0.5)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                    .strokeBorder(isRecording ? Color("ApidaeHoney").opacity(0.4) : Color(.separatorColor), lineWidth: 0.5)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                if let conflict = hotkeyConflict {
+                    Text(conflict)
+                        .font(.caption)
+                        .foregroundStyle(Color("ApidaeError"))
+                }
+
+                Toggle("Global hotkey enabled", isOn: $hotkeyEnabled)
+                    .onChange(of: hotkeyEnabled) { _, enabled in
+                        NotificationCenter.default.post(
+                            name: .apidaeHotkeyPreferenceChanged,
+                            object: nil,
+                            userInfo: ["enabled": enabled]
+                        )
+                    }
+            }
+
+            Section("General") {
+                Toggle("Launch at login", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { _, enabled in
+                        do {
+                            if enabled { try SMAppService.mainApp.register() }
+                            else { try SMAppService.mainApp.unregister() }
+                        } catch { launchAtLogin = !enabled }
+                    }
+
+                Picker("Appearance", selection: $appearanceMode) {
+                    Text("System").tag(0)
+                    Text("Light").tag(1)
+                    Text("Dark").tag(2)
+                }
+                .onChange(of: appearanceMode) { _, mode in
+                    applyAppearance(mode)
+                }
+            }
+
+            Section("Permissions") {
+                LabeledContent("Accessibility") {
+                    if AccessibilityChecker.isEnabled {
+                        Label("Granted", systemImage: "checkmark.circle.fill")
+                            .font(.callout)
+                            .foregroundStyle(Color("ApidaeHoney"))
+                    } else {
+                        Button("Grant Access") {
+                            AccessibilityChecker.openSystemSettings()
+                        }
+                        .controlSize(.small)
+                    }
+                }
+            }
+
+            Section {
+                Button {
+                    NotificationCenter.default.post(
+                        name: .apidaeLock,
+                        object: nil,
+                        userInfo: [Notification.triggerKey: TriggerMethod.settingsButton.rawValue]
+                    )
+                } label: {
+                    HStack {
+                        Label("Lock Screen Now", systemImage: "lock.fill")
+                        Spacer()
+                        Text(hotkeyDisplay)
+                            .font(.callout.monospaced())
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .onAppear {
+            applyAppearance(appearanceMode)
+        }
+    }
+
+    private func applyAppearance(_ mode: Int) {
+        switch mode {
+        case 1: NSApp.appearance = NSAppearance(named: .aqua)
+        case 2: NSApp.appearance = NSAppearance(named: .darkAqua)
+        default: NSApp.appearance = nil // Follow system
+        }
+    }
+
+    // MARK: - Hotkey Recorder
+
+    private func startRecording() {
+        hotkeyConflict = nil
+        isRecording = true
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            var parts: [String] = []
+            if event.modifierFlags.contains(.command) { parts.append("Cmd") }
+            if event.modifierFlags.contains(.shift) { parts.append("Shift") }
+            if event.modifierFlags.contains(.option) { parts.append("Opt") }
+            if event.modifierFlags.contains(.control) { parts.append("Ctrl") }
+
+            guard !parts.isEmpty else { return event }
+
+            if let chars = event.charactersIgnoringModifiers?.uppercased(), !chars.isEmpty {
+                parts.append(chars)
+            }
+
+            let display = parts.joined(separator: "+")
+
+            if let conflict = HotkeyConfig.systemConflict(keyCode: Int(event.keyCode), modifiers: event.modifierFlags) {
+                hotkeyConflict = "\(display) conflicts with \(conflict)"
+                return nil
+            }
+
+            var carbonMods: Int = 0
+            if event.modifierFlags.contains(.command) { carbonMods |= cmdKey }
+            if event.modifierFlags.contains(.shift) { carbonMods |= shiftKey }
+            if event.modifierFlags.contains(.option) { carbonMods |= optionKey }
+            if event.modifierFlags.contains(.control) { carbonMods |= controlKey }
+
+            HotkeyConfig.saveKeyCode(Int(event.keyCode))
+            HotkeyConfig.saveModifiers(carbonMods)
+            HotkeyConfig.saveDisplay(display)
+            hotkeyDisplay = display
+            hotkeyConflict = nil
+            stopRecording()
+
+            NotificationCenter.default.post(name: .apidaeHotkeyPreferenceChanged, object: nil)
+
+            return nil
+        }
+    }
+
+    private func stopRecording() {
+        isRecording = false
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyMonitor = nil
+        }
+    }
+}
