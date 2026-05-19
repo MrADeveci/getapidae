@@ -14,7 +14,7 @@ struct SettingsView: View {
             AboutSettingsView()
                 .tabItem { Label("About", systemImage: "info.circle") }
         }
-        .frame(minWidth: 400, idealWidth: 480, maxWidth: 560, minHeight: 520, idealHeight: 560)
+        .frame(minWidth: 400, idealWidth: 480, maxWidth: 560)
         .onAppear {
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)

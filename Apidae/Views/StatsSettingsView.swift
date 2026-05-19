@@ -4,6 +4,13 @@ import Charts
 struct StatsSettingsView: View {
     let statsService: StatsService?
 
+    enum SubTab: String, CaseIterable {
+        case summary
+        case activity
+    }
+
+    @SceneStorage("statsSubTab") private var subTab: SubTab = .summary
+
     @State private var today: TodaySummary?
     @State private var week: [DaySummary] = []
     @State private var allTime: AllTimeTotals?
@@ -18,30 +25,29 @@ struct StatsSettingsView: View {
                 UnavailableView()
             }
         }
+        .frame(minHeight: 480, idealHeight: 560)
     }
 
     @ViewBuilder
     private func content(service: StatsService) -> some View {
-        Form {
-            Section("Today") {
-                TodaySection(summary: today)
+        VStack(spacing: 0) {
+            Picker("Section", selection: $subTab) {
+                Text("Summary").tag(SubTab.summary)
+                Text("Activity").tag(SubTab.activity)
             }
-            Section("This week") {
-                WeekChartSection(days: week)
-            }
-            Section("All-time") {
-                AllTimeSection(totals: allTime)
-            }
-            Section("Recent activity") {
-                RecentActivitySection(events: recent)
-            }
-            Section {
-                Button("Clear stats history…", role: .destructive) {
-                    showClearConfirm = true
-                }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .padding(.horizontal)
+            .padding(.top, 12)
+            .padding(.bottom, 4)
+
+            switch subTab {
+            case .summary:
+                summaryForm(service: service)
+            case .activity:
+                activityForm()
             }
         }
-        .formStyle(.grouped)
         .task { await reload(service: service) }
         .onReceive(NotificationCenter.default.publisher(for: .apidaeStatsDidChange)) { _ in
             Task { await reload(service: service) }
@@ -58,6 +64,37 @@ struct StatsSettingsView: View {
         } message: {
             Text("This will delete all recorded lock and unlock events. This cannot be undone.")
         }
+    }
+
+    @ViewBuilder
+    private func summaryForm(service: StatsService) -> some View {
+        Form {
+            Section("Today") {
+                TodaySection(summary: today)
+            }
+            Section("This week") {
+                WeekChartSection(days: week)
+            }
+            Section("All-time") {
+                AllTimeSection(totals: allTime)
+            }
+            Section {
+                Button("Clear stats history…", role: .destructive) {
+                    showClearConfirm = true
+                }
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    @ViewBuilder
+    private func activityForm() -> some View {
+        Form {
+            Section("Recent activity") {
+                RecentActivitySection(events: recent)
+            }
+        }
+        .formStyle(.grouped)
     }
 
     private func reload(service: StatsService) async {

@@ -144,6 +144,7 @@ struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .frame(minHeight: 680, idealHeight: 800)
         .onAppear {
             applyAppearance(appearanceMode)
         }

@@ -58,5 +58,6 @@ struct AboutSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .frame(minHeight: 380, idealHeight: 460)
     }
 }
