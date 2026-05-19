@@ -162,6 +162,8 @@ actor StatsRecorder {
         guard stepRC == SQLITE_DONE else {
             throw StatsError.stepFailed(stepRC, String(cString: sqlite3_errmsg(db)))
         }
+
+        NotificationCenter.default.post(name: .apidaeStatsDidChange, object: nil)
     }
 
     private static func exec(_ db: OpaquePointer, _ sql: String) throws {

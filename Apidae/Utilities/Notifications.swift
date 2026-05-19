@@ -9,6 +9,7 @@ extension Notification.Name {
     static let apidaeSessionLost = Notification.Name("apidaeSessionLost")
     static let toggleApidae = Notification.Name("toggleApidae")
     static let apidaeHotkeyPreferenceChanged = Notification.Name("apidaeHotkeyPreferenceChanged")
+    static let apidaeStatsDidChange = Notification.Name("apidaeStatsDidChange")
 }
 
 extension Notification {
