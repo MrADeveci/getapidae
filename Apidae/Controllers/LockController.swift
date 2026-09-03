@@ -192,6 +192,7 @@ class LockController: ObservableObject {
                       self.state == .locked || self.state == .unlocking,
                       let start = self.lockStartTime else { return }
                 self.elapsedTime = Date().timeIntervalSince(start)
+                self.sleepPreventer.nudgeUserActivityIfDue()
             }
         }
 

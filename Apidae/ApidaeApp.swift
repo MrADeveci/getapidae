@@ -7,19 +7,20 @@ private let logger = Logger(subsystem: "app.getapidae.mac", category: "App")
 struct ApidaeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var lockController = LockController()
+    @StateObject private var keepAwake = KeepAwakeController(providers: [ClaudeActivityProvider()])
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarView(controller: lockController)
+            MenuBarView(controller: lockController, keepAwake: keepAwake)
         } label: {
             Image("MenuBarIcon")
                 .renderingMode(.template)
-                .opacity(lockController.state == .locked ? 1.0 : 0.55)
+                .opacity(lockController.state == .locked || keepAwake.state.isHolding ? 1.0 : 0.55)
         }
 
         Settings {
-            SettingsView(statsService: lockController.statsService)
+            SettingsView(statsService: lockController.statsService, keepAwake: keepAwake)
         }
     }
 

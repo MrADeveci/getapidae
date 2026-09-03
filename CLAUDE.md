@@ -34,10 +34,16 @@ Apidae/                    (was: Lockpaw/)
 │  ├─ InputBlocker          CGEventTap on caller's run loop (default tap, intercepts)
 │  ├─ HotkeyManager         CGEventTap on a dedicated background thread (listen-only)
 │  ├─ OverlayWindowManager  NSWindow per screen at CGShieldingWindowLevel
-│  └─ SleepPreventer        IOPMAssertion (kIOPMAssertionTypeNoIdleSleep)
+│  ├─ SleepPreventer        IOPMAssertion (display or idle) + periodic user-activity nudge
+│  ├─ KeepAwakeController   Polls ActivityProviders, holds an assertion while one is busy
+│  ├─ ClaudeActivityProvider Reads the Claude desktop app's AX tree for a running task
+│  ├─ StatsRecorder         SQLite store for lock/unlock events
+│  └─ StatsService          Query layer for the Stats tab
 ├─ Models/
 │  ├─ LockState             .unlocked → .locking → .locked → .unlocking, validated
-│  └─ HotkeyConfig          UserDefaults wrapper + system-shortcut conflict detection
+│  ├─ HotkeyConfig          UserDefaults wrapper + system-shortcut conflict detection
+│  ├─ ActivityProvider      Protocol + ProviderActivity + ClaudeActivityRules (pure)
+│  └─ KeepAwakeDecider      Pure hold/release logic with idle grace
 ├─ Views/
 │  ├─ LockScreenView        Primary overlay: mascot, message, elapsed timer, auth button
 │  ├─ AmbientScreenView     Secondary-display overlay (animated blobs only)
@@ -47,7 +53,8 @@ Apidae/                    (was: Lockpaw/)
 ├─ Utilities/
 │  ├─ Constants             appName, bundleIdentifier, urlScheme, Timing, Anim
 │  ├─ Notifications         All Notification.Name extensions in one file
-│  └─ AccessibilityChecker  AXIsProcessTrusted + open-System-Settings helper
+│  ├─ AccessibilityChecker  AXIsProcessTrusted + open-System-Settings helper
+│  └─ AXTreeInspector       Capped depth-first walk of another app's AX tree
 └─ Resources/Assets.xcassets/
    ├─ AppIcon.appiconset
    ├─ Mascot.imageset       Brand-neutral asset name; artwork = the bee
@@ -64,7 +71,9 @@ Apidae/                    (was: Lockpaw/)
 - **State machine.** `LockState.canTransition(to:)` validates every move; `LockController.transitionTo()` is the only mutator and logs+rejects invalid jumps. State is also re-checked after async auth returns — the user can lose the session (Fast User Switch, sleep) mid-evaluation.
 - **`@MainActor` controllers, `Task.detached` for `LAContext.evaluatePolicy`.** The system auth dialog needs the main thread, so awaiting it from MainActor would deadlock. The `Authenticator` hops off MainActor explicitly.
 - **Toggle observer in `LockController.init`, not `.onReceive`.** `MenuBarExtra` content is lazily initialised on first menu open, so a SwiftUI-side observer wouldn't be live until the user clicks the menu. The hotkey must work without that.
-- **Sleep prevention.** Single `IOPMAssertion` of type `kIOPMAssertionTypeNoIdleSleep` taken on lock, released on unlock. Visible via `pmset -g assertions`.
+- **Sleep prevention.** One `IOPMAssertion` per `SleepPreventer`: `PreventUserIdleDisplaySleep` when "Keep display on while locked" is on (the default), else `NoIdleSleep`. Taken on lock, released on unlock. An assertion alone does not stop the screen saver, the "lock after screen saver" timer, or on some systems the pre-sleep dim, so while the display must stay lit the lock timer also calls `nudgeUserActivityIfDue()`, which issues `IOPMAssertionDeclareUserActivity` every `Constants.Timing.userActivityNudgeInterval` (30s). Visible via `pmset -g assertions`.
+- **Keep-awake without locking.** `KeepAwakeController` polls every `Constants.Timing.keepAwakePollInterval` (5s) off the main actor, asks each `ActivityProvider` whether its tool is busy, and holds a second, independent `SleepPreventer` (label "keeping the hive awake") while any is. `KeepAwakeDecider` adds `keepAwakeIdleGrace` (90s) so gaps between tool calls don't flap the assertion. The lock overlay and keep-awake can both hold assertions; IOKit keeps the Mac awake until both release. Settings keys: `keepAwakeEnabled` (default on), `keepAwakeKeepDisplayOn` (default off).
+- **Claude detection is Accessibility-tree scraping.** `ClaudeActivityProvider` finds `com.anthropic.claudefordesktop`, sets `AXManualAccessibility` (Electron only builds the web AX tree when asked), and walks windows with `AXTreeInspector` (capped at 4000 elements, depth 48, 1s messaging timeout). Busy signals, in `ClaudeActivityRules`: a sidebar session row titled "Running …" or an `AXApplicationStatus` group described "Running" (covers every listed session), and the composer's "Stop response" button (the open conversation only). Idle rows carry an image described "Idle". Chat bubbles also contain `AXApplicationStatus` groups with an empty description, which must not count. Power assertions are useless as a signal: Claude holds a permanent Electron `NoIdleSleep` assertion. `scripts/ax-dump.swift` dumps the tree for when the UI changes; `scripts/diagnose.sh` gathers power, screen-saver and build info.
 - **Auth rate-limiting.** 3 failed attempts → 30s cooldown. Limit and cooldown live in `Constants.Timing`.
 - **URL scheme is rate-limited too.** 100ms debounce in `AppDelegate.application(_:open:)` to defuse repeated triggers from external launchers.
 - **Debug-only escape hatch.** `InputBlocker` has a `#if DEBUG` Cmd+Shift+Q kill-switch that calls `NSApplication.terminate`. Compile-gated so it can never ship.
@@ -90,7 +99,7 @@ xcodebuild -project Apidae.xcodeproj -scheme Apidae -configuration Debug build
 xcodebuild -project Apidae.xcodeproj -scheme Apidae -configuration Debug test
 ```
 
-There are 34 unit tests across `ApidaeTests/` covering `LockState` transitions, `Constants` formatting, and `HotkeyConfig` conflict detection. They are pure-logic tests; they don't touch the event taps, overlay windows, or `LAContext`.
+Unit tests in `ApidaeTests/` cover `LockState` transitions, `Constants` formatting, `HotkeyConfig` conflict detection, `SleepPreventer` assertion types, the stats recorder and service, `ClaudeActivityRules`, and `KeepAwakeDecider`. They are pure-logic tests; they don't touch the event taps, overlay windows, `LAContext`, or another app's AX tree.
 
 **TCC gotcha.** Each Debug rebuild changes the binary signature, which invalidates the TCC permissions Apidae needs. Two services to reset:
 

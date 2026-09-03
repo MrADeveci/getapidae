@@ -3,6 +3,7 @@ import ServiceManagement
 import Carbon
 
 struct GeneralSettingsView: View {
+    @ObservedObject var keepAwake: KeepAwakeController
     @AppStorage("lockMessage") private var message = Constants.defaultLockMessage
     @AppStorage("showMessage") private var showMessage = true
     @AppStorage("hotkeyEnabled") private var hotkeyEnabled = HotkeyConfig.defaultEnabled
@@ -11,6 +12,8 @@ struct GeneralSettingsView: View {
     @AppStorage("multiDisplayMode") private var multiDisplayMode = 0 // 0=Ambient, 1=Mirror
     @AppStorage("hotkeyDisplay") private var hotkeyDisplay = HotkeyConfig.defaultDisplay
     @AppStorage("keepDisplayAwake") private var keepDisplayAwake = true
+    @AppStorage(KeepAwakeController.enabledKey) private var keepAwakeEnabled = true
+    @AppStorage(KeepAwakeController.keepDisplayOnKey) private var keepAwakeKeepDisplayOn = false
 
     @State private var isRecording = false
     @State private var hotkeyConflict: String?
@@ -45,6 +48,26 @@ struct GeneralSettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Section("Keep Awake") {
+                VStack(alignment: .leading, spacing: 2) {
+                    Toggle("Keep the Mac awake while \(providerNames) is working", isOn: $keepAwakeEnabled)
+                    Text("Apidae watches for a running task and stops the Mac idle-sleeping until it finishes, without covering the screen. Lets go \(Int(Constants.Timing.keepAwakeIdleGrace)) seconds after the task ends.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Toggle("Also keep the display on", isOn: $keepAwakeKeepDisplayOn)
+                    .disabled(!keepAwakeEnabled)
+
+                LabeledContent("Status") {
+                    Text(keepAwakeStatus)
+                        .font(.callout)
+                        .foregroundStyle(keepAwake.state.isHolding ? Color("ApidaeHoney") : .secondary)
+                        .multilineTextAlignment(.trailing)
                 }
             }
 
@@ -147,6 +170,27 @@ struct GeneralSettingsView: View {
         .frame(minHeight: 680, idealHeight: 800)
         .onAppear {
             applyAppearance(appearanceMode)
+        }
+    }
+
+    private var providerNames: String {
+        keepAwake.providers.map(\.displayName).joined(separator: ", ")
+    }
+
+    private var keepAwakeStatus: String {
+        switch keepAwake.state {
+        case .disabled: return "Off"
+        case .needsAccessibility: return "Needs Accessibility access"
+        case .holding(_, let detail): return "Holding: \(detail)"
+        case .watching(let readings):
+            let parts = readings.sorted { $0.key < $1.key }.map { name, activity -> String in
+                switch activity {
+                case .notRunning: return "\(name) not running"
+                case .idle: return "\(name) idle"
+                case .busy: return "\(name) busy"
+                }
+            }
+            return parts.isEmpty ? "Watching" : parts.joined(separator: ", ")
         }
     }
 

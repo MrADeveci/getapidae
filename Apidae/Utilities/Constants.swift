@@ -15,6 +15,16 @@ enum Constants {
         static let authRateLimitCooldown: TimeInterval = 30.0         // seconds
         static let maxAuthAttempts = 3
         static let urlSchemeDebounce: TimeInterval = 0.1              // seconds
+        static let userActivityNudgeInterval: TimeInterval = 30.0    // seconds; resets the idle/screen-saver clock
+        static let keepAwakePollInterval: TimeInterval = 5.0         // seconds between provider checks
+        static let keepAwakeIdleGrace: TimeInterval = 90.0           // seconds a provider may look idle before we let go
+    }
+
+    /// External tools Apidae can watch for activity. Bundle ids are matched against
+    /// `NSWorkspace.shared.runningApplications`.
+    enum Providers {
+        static let claudeBundleIdentifier = "com.anthropic.claudefordesktop"
+        static let claudeDisplayName = "Claude"
     }
 
     enum Anim {

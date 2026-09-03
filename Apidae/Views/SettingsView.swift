@@ -2,10 +2,11 @@ import SwiftUI
 
 struct SettingsView: View {
     let statsService: StatsService?
+    @ObservedObject var keepAwake: KeepAwakeController
 
     var body: some View {
         TabView {
-            GeneralSettingsView()
+            GeneralSettingsView(keepAwake: keepAwake)
                 .tabItem { Label("General", systemImage: "gearshape") }
 
             StatsSettingsView(statsService: statsService)

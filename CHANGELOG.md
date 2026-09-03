@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.0] - 2026-09-03
+
+### Added
+
+- Keep awake while Claude works. Apidae now watches the Claude desktop app (Cowork and Claude Code sessions) through the Accessibility API and holds a power assertion while a task is running, without covering the screen. It lets go 90 seconds after the task finishes. On by default; toggle in the menu bar or Settings > General > Keep Awake, with an optional "also keep the display on". Providers are pluggable for other tools later.
+- Menu bar status line showing what the watcher sees; the bee glyph goes solid while a hold is active.
+- Stats tab with today, this week, all-time totals and recent activity, backed by a local SQLite store.
+- "Keep display on while locked" setting (default on).
+- Categorised Settings: General / Stats / About.
+- `scripts/diagnose.sh` and `scripts/ax-dump.swift` for investigating power state and the Claude accessibility tree.
+
+### Fixed
+
+- The lock overlay no longer goes dark: the display assertion is now paired with a periodic user activity declaration so the screen saver and "lock after screen saver" timer cannot interrupt it.
+
 ## [0.1.0] - 2026-05-08
 
 Forked from Lockpaw 1.0.4 by Erik Nielsen and rebranded as Apidae.
