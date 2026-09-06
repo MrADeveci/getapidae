@@ -4,6 +4,13 @@ on:
   push:
     tags:
       - "v*"
+  # Fallback: run from the Actions tab for an existing tag if the tag push
+  # did not trigger a build (e.g. the tag was pushed separately).
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, e.g. v0.3.0"
+        required: true
 
 jobs:
   release:
@@ -14,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Install dependencies
         run: brew install xcodegen xcbeautify create-dmg
@@ -150,8 +159,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CAN_SIGN: ${{ steps.check-secrets.outputs.can_sign }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
         run: |
-          TAG="${GITHUB_REF#refs/tags/}"
+          TAG="${INPUT_TAG:-${GITHUB_REF#refs/tags/}}"
 
           # Create release if it doesn't exist yet. Unsigned builds are marked
           # as pre-releases and carry the Gatekeeper instructions in the notes.

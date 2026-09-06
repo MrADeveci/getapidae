@@ -10,7 +10,7 @@ How a version gets from `main` to something people can download. Two paths: unsi
    - `homebrew/Casks/apidae.rb`: `version`.
    - `CHANGELOG.md`: turn the `[Unreleased]` heading into `[x.y.z] - YYYY-MM-DD`.
 3. Read the README once and check every claim still matches the app: features, settings paths, permission names, test count, architecture tree.
-4. Commit, then tag: `git tag vX.Y.Z` on that commit. Push the commit and the tag (GitHub Desktop pushes tags along with the branch).
+4. Commit, then tag `vX.Y.Z` on that commit. In GitHub Desktop, the tagged commit in History shows a tag badge with an up arrow; Push origin then sends the tag with the branch. If the badge is missing, right click the commit, Create Tag, and push. If a tag ever reaches GitHub without starting a build, open Actions > Release > Run workflow and enter the tag.
 5. `release.yml` runs on the tag: builds Release, signs (Developer ID if secrets exist, otherwise ad hoc), packages `Apidae.dmg`, notarises when it can, and creates the GitHub Release with the DMG attached. Unsigned builds are marked as pre releases and carry Gatekeeper instructions in the notes.
 6. Download the DMG from the release page and test it on a Mac that has never had Apidae installed. First run should show onboarding, ask for Accessibility, and keep awake should start watching Claude straight away.
 7. Only then share the link.
