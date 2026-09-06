@@ -23,7 +23,7 @@ Code-signing identity, Apple ID, and team id in `scripts/build-release.sh` and t
 
 ## Positioning (decided 6 Sep 2026)
 
-Keep awake is the headline feature, not the hotkey. Apidae's pitch is "run it and it just works": it watches the Claude desktop app and holds the Mac awake with nothing to install and no hooks, which is what separates it from Lockpaw (hotkey lock plus per-agent hook installation, no Cowork support). The cover and hotkey stay, presented as the optional second layer. Copy in README, onboarding and About should lead with keep awake; new features should extend the "it acts on its own" story (attention alerts from the AX tree, auto cover when busy and idle) before anything that needs user setup.
+Keep awake is the headline feature, not the hotkey. Apidae's pitch is "run it and it just works": it watches the Claude desktop app and holds the Mac awake with nothing to install and no hooks, which is what separates it from Lockpaw (hotkey lock plus per-agent hook installation, no Cowork support). The cover and hotkey stay, presented as the optional second layer. Copy in README, onboarding and About should lead with keep awake; new features should extend the "it acts on its own" story (auto cover when busy and idle, keep awake sessions in Stats) before anything that needs user setup. Attention alerts are deliberately out of scope: the official Claude app already notifies the user when Claude asks a question.
 
 ## Architecture at a glance
 

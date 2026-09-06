@@ -1,8 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [0.3.0] - 2026-09-06
 
 ### Changed
+
+- Release pipeline now ships a DMG for unsigned builds too (ad hoc signed, marked as a pre release with Gatekeeper instructions in the notes) instead of creating an empty release. Signed and notarised builds still take over automatically once the Developer ID secrets are set.
+- Roadmap trimmed: no attention alerts. The official Claude app already notifies you when Claude asks a question, so Apidae stays focused on keep awake and the cover.
 
 - Positioning: keep awake is now the headline. The README, onboarding and About text lead with "Apidae watches Claude and keeps your Mac awake while it works"; the cover and hotkey are presented as the optional second layer.
 - Onboarding reordered: Welcome, Accessibility, optional hotkey, Ready. Accessibility comes first because both keep awake and the cover need it; the hotkey step says it can be changed or switched off later; the final step confirms keep awake is already on.

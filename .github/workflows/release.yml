@@ -92,8 +92,16 @@ jobs:
           codesign --force --sign "$DEVELOPER_ID_APPLICATION" --options runtime --timestamp "$APP_PATH"
           codesign --verify --verbose "$APP_PATH"
 
+      # Unsigned builds still get an ad hoc signature so they launch on Apple
+      # silicon. Gatekeeper will still warn; RELEASING.md covers the wording.
+      - name: Ad hoc sign app (no Developer ID)
+        if: steps.check-secrets.outputs.can_sign != 'true'
+        run: |
+          APP_PATH="build/DerivedData/Build/Products/Release/Apidae.app"
+          codesign --force --deep --sign - "$APP_PATH"
+          codesign --verify --verbose "$APP_PATH"
+
       - name: Create DMG
-        if: steps.check-secrets.outputs.can_sign == 'true'
         run: |
           APP_PATH="build/DerivedData/Build/Products/Release/Apidae.app"
           DMG_DIR="build/dmg"
@@ -145,13 +153,18 @@ jobs:
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
 
-          # Create release if it doesn't exist yet
+          # Create release if it doesn't exist yet. Unsigned builds are marked
+          # as pre-releases and carry the Gatekeeper instructions in the notes.
           if ! gh release view "$TAG" &>/dev/null; then
-            gh release create "$TAG" --title "$TAG" --generate-notes
+            if [ "$CAN_SIGN" = "true" ]; then
+              gh release create "$TAG" --title "$TAG" --generate-notes
+            else
+              NOTES=$'**Unsigned build.** This release is not yet signed with an Apple Developer ID, so macOS will say it cannot verify Apidae.\n\nTo open it: drag Apidae to Applications, double click it once and dismiss the warning, then go to System Settings > Privacy & Security, scroll down and click **Open Anyway**. You only need to do this once per version.\n\nSigned and notarised builds will follow.\n\n---\n'
+              gh release create "$TAG" --title "$TAG" --prerelease --generate-notes --notes "$NOTES"
+            fi
           fi
 
-          # Upload DMG if signing/notarization succeeded
-          if [ "$CAN_SIGN" = "true" ] && [ -f "build/Apidae.dmg" ]; then
+          if [ -f "build/Apidae.dmg" ]; then
             gh release upload "$TAG" "build/Apidae.dmg#Apidae.dmg" --clobber
           fi
 

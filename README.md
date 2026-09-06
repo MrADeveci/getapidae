@@ -54,6 +54,12 @@ Tools like Lockpaw ask each agent to call them when it finishes, which means ins
 
 ## Install
 
+### Download
+
+Grab `Apidae.dmg` from the [latest release](https://github.com/MrADeveci/getapidae/releases/latest), open it and drag Apidae to Applications.
+
+Releases marked **pre release** are not yet signed with an Apple Developer ID, so macOS will say it cannot verify the app. Double click Apidae once and dismiss the warning, then go to System Settings > Privacy & Security, scroll down and click **Open Anyway**. You only do this once per version. Signed and notarised builds will follow.
+
 ### Build from source
 
 ```bash
@@ -66,7 +72,7 @@ xcodebuild -scheme Apidae -configuration Release build
 
 On first launch, grant **Accessibility** when prompted. Apidae needs it to read the Claude app's accessibility tree, to listen for the hotkey, and to block input while covered. macOS will also ask for **Input Monitoring** the first time Apidae blocks input; without it the overlay still appears but keystrokes pass through underneath. A bee icon appears in your menu bar.
 
-A signed DMG and Homebrew cask will follow once the project has an Apple Developer account and a release pipeline.
+A Homebrew cask lives in `homebrew/` and will be published as a tap once releases are signed.
 
 ## Under the hood
 
@@ -177,7 +183,6 @@ scripts/
 
 ## Roadmap
 
-- Alert when Claude is waiting for you (a permission prompt, a question), spotted from the same accessibility tree, with nothing to install
 - Cover the screen automatically when Claude is busy and you have been away for a while
 - Keep awake sessions in Stats
 - Providers for other agents
