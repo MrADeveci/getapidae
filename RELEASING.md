@@ -21,7 +21,7 @@ How a version gets from `main` to something people can download. Two paths: unsi
 - [ ] Repo description and topics set (macos, menu-bar, claude, keep-awake, swift, swiftui).
 - [ ] Screenshots in the README: menu bar status line while Claude is busy, the cover on a display, the Stats tab.
 - [ ] Onboarding run through on a fresh macOS user account.
-- [ ] `getapidae.com` has at least a landing page with a download button pointing at `releases/latest`.
+- [ ] `getapidae.com` has at least a landing page with a download button. Note that `releases/latest` skips pre releases, so link to the releases page (or a specific tag) until the first signed release; switch to `releases/latest` after that.
 
 ## Signed releases (once the Developer account exists)
 

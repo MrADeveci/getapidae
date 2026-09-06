@@ -56,7 +56,7 @@ Tools like Lockpaw ask each agent to call them when it finishes, which means ins
 
 ### Download
 
-Grab `Apidae.dmg` from the [latest release](https://github.com/MrADeveci/getapidae/releases/latest), open it and drag Apidae to Applications.
+Grab `Apidae.dmg` from the [releases page](https://github.com/MrADeveci/getapidae/releases), open it and drag Apidae to Applications.
 
 Releases marked **pre release** are not yet signed with an Apple Developer ID, so macOS will say it cannot verify the app. Double click Apidae once and dismiss the warning, then go to System Settings > Privacy & Security, scroll down and click **Open Anyway**. You only do this once per version. Signed and notarised builds will follow.
 
