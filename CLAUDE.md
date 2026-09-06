@@ -21,6 +21,10 @@ Sparkle auto-updates were removed during the cut and will return when releases s
 
 Code-signing identity, Apple ID, and team id in `scripts/build-release.sh` and the GitHub release workflow are TODO placeholders pending an Apple Developer account.
 
+## Positioning (decided 6 Sep 2026)
+
+Keep awake is the headline feature, not the hotkey. Apidae's pitch is "run it and it just works": it watches the Claude desktop app and holds the Mac awake with nothing to install and no hooks, which is what separates it from Lockpaw (hotkey lock plus per-agent hook installation, no Cowork support). The cover and hotkey stay, presented as the optional second layer. Copy in README, onboarding and About should lead with keep awake; new features should extend the "it acts on its own" story (attention alerts from the AX tree, auto cover when busy and idle) before anything that needs user setup.
+
 ## Architecture at a glance
 
 macOS 14+ SwiftUI app, `LSUIElement = true` (menu-bar-only). XcodeGen generates `Apidae.xcodeproj` from `project.yml`. The app has no sandbox (`com.apple.security.app-sandbox = false`) because it needs Accessibility access for system-wide event taps.
@@ -48,8 +52,11 @@ Apidae/                    (was: Lockpaw/)
 │  ├─ LockScreenView        Primary overlay: mascot, message, elapsed timer, auth button
 │  ├─ AmbientScreenView     Secondary-display overlay (animated blobs only)
 │  ├─ MenuBarView           Lock / Unlock / Settings / Quit dropdown
-│  ├─ SettingsView          Form: hotkey, message, appearance, multi-display, perms
-│  └─ OnboardingView        4-step wizard run on first launch
+│  ├─ SettingsView          Tab container: General / Stats / About
+│  ├─ GeneralSettingsView   Lock screen, keep awake, shortcuts, general, permissions
+│  ├─ StatsSettingsView     Today, week chart, all-time totals, recent activity
+│  ├─ AboutSettingsView     Version, links, licence
+│  └─ OnboardingView        4-step wizard: welcome, accessibility, optional hotkey, ready
 ├─ Utilities/
 │  ├─ Constants             appName, bundleIdentifier, urlScheme, Timing, Anim
 │  ├─ Notifications         All Notification.Name extensions in one file

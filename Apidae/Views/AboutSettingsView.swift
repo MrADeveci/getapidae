@@ -33,7 +33,7 @@ struct AboutSettingsView: View {
             }
 
             Section {
-                Text("Apidae is a visual privacy tool — it prevents accidental input while the cover is active. For real security, use your Mac's lock screen (Ctrl+Cmd+Q).")
+                Text("Apidae keeps your Mac awake while Claude works and covers the screen when you step away. It is a visual privacy tool: it prevents accidental input while the cover is active. For real security, use your Mac's lock screen (Ctrl+Cmd+Q).")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

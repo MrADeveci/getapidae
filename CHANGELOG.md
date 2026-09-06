@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Positioning: keep awake is now the headline. The README, onboarding and About text lead with "Apidae watches Claude and keeps your Mac awake while it works"; the cover and hotkey are presented as the optional second layer.
+- Onboarding reordered: Welcome, Accessibility, optional hotkey, Ready. Accessibility comes first because both keep awake and the cover need it; the hotkey step says it can be changed or switched off later; the final step confirms keep awake is already on.
+- README rewritten to match 0.2.0: keep awake, stats, split settings, both permissions, 70 tests, full architecture tree, roadmap, and an attribution paragraph that separates what came from Lockpaw from what is Apidae's own.
+
 ## [0.2.0] - 2026-09-03
 
 ### Added

@@ -20,8 +20,8 @@ struct OnboardingView: View {
             Group {
                 switch step {
                 case 0: welcomeStep
-                case 1: hotkeyStep
-                case 2: accessibilityStep
+                case 1: accessibilityStep
+                case 2: hotkeyStep
                 case 3: readyStep
                 default: EmptyView()
                 }
@@ -72,13 +72,13 @@ struct OnboardingView: View {
     }
 
     private var canAdvance: Bool {
-        if step == 2 && !accessibilityGranted { return false }
+        if step == 1 && !accessibilityGranted { return false }
         return true
     }
 
     private var buttonLabel: String {
         switch step {
-        case 2 where !accessibilityGranted: return "Waiting for access…"
+        case 1 where !accessibilityGranted: return "Waiting for access…"
         case 3: return "Get Started"
         default: return "Continue"
         }
@@ -88,7 +88,7 @@ struct OnboardingView: View {
         withAnimation(.easeInOut(duration: 0.3)) {
             if step < totalSteps - 1 {
                 step += 1
-                if step == 2 { startAccessibilityPolling() }
+                if step == 1 { startAccessibilityPolling() }
             } else {
                 UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
                 NotificationCenter.default.post(name: .apidaeHotkeyPreferenceChanged, object: nil)
@@ -113,7 +113,7 @@ struct OnboardingView: View {
                 Text("Welcome to Apidae")
                     .font(.title2.weight(.semibold))
 
-                Text("Apidae for macOS")
+                Text("Keeps your Mac awake while Claude works,\nand covers the screen when you step away.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -129,7 +129,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 2: Hotkey
+    // MARK: - Step 3: Hotkey (optional)
 
     private var hotkeyStep: some View {
         VStack(spacing: 20) {
@@ -138,12 +138,14 @@ struct OnboardingView: View {
                 .foregroundStyle(Color("ApidaeHoney"))
 
             VStack(spacing: 8) {
-                Text("Set your hotkey")
+                Text("A hotkey for the cover (optional)")
                     .font(.title2.weight(.semibold))
 
-                Text("Press once to lock, press again to unlock.")
+                Text("Press once to cover the screen, again to uncover.\nYou can change it or switch it off later in Settings.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
             }
 
             // Recorder
@@ -187,7 +189,7 @@ struct OnboardingView: View {
         .onAppear { setupKeyRecorder() }
     }
 
-    // MARK: - Step 3: Accessibility
+    // MARK: - Step 2: Accessibility
 
     private var accessibilityStep: some View {
         VStack(spacing: 20) {
@@ -206,18 +208,18 @@ struct OnboardingView: View {
             .animation(.easeOut(duration: 0.3), value: accessibilityGranted)
 
             VStack(spacing: 8) {
-                Text(accessibilityGranted ? "Access granted" : "One more thing")
+                Text(accessibilityGranted ? "Access granted" : "Let Apidae see Claude")
                     .font(.title2.weight(.semibold))
                     .animation(.none, value: accessibilityGranted)
 
                 if accessibilityGranted {
-                    Text("Apidae can now block keyboard input\nwhile the cover is active.")
+                    Text("Apidae can now see when Claude is working\nand block input while the cover is active.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(2)
                 } else {
-                    Text("Apidae needs Accessibility permission to\nblock keyboard input while the cover is active.")
+                    Text("Apidae needs Accessibility permission to see when\nClaude is working, to listen for the hotkey, and to\nblock keyboard input while the cover is active.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -313,7 +315,7 @@ struct OnboardingView: View {
                 Text("Apidae lives in your menu bar")
                     .font(.title3.weight(.semibold))
 
-                Text("Look for the bee icon in the top-right\nof your screen. That's your control center.")
+                Text("Keep awake is already on. The bee icon goes solid\nwhile Apidae holds the Mac awake for Claude.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -322,7 +324,7 @@ struct OnboardingView: View {
 
             // Hotkey reminder
             VStack(spacing: 4) {
-                Text("Your hotkey")
+                Text("Cover the screen with")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -378,8 +380,8 @@ struct OnboardingView: View {
             HotkeyConfig.saveKeyCode(Int(event.keyCode))
             HotkeyConfig.saveModifiers(carbonMods)
             HotkeyConfig.saveDisplay(recordedKeyDisplay)
-            // Don't post apidaeHotkeyPreferenceChanged here — Accessibility isn't
-            // granted yet during onboarding. The completion step posts it instead.
+            // Don't post apidaeHotkeyPreferenceChanged here. The completion step
+            // posts it once, so the hotkey registers when onboarding finishes.
 
             return nil
         }
